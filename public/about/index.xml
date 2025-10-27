@@ -2,12 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>About | How I Work on Neel deshmukh</title>
-    <link>http://localhost:1313/about/</link>
+    <link>https://neeldeshmukh.com/about/</link>
     <description>Recent content in About | How I Work on Neel deshmukh</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <copyright>{year} Neel Deshmukh</copyright>
     <lastBuildDate></lastBuildDate>
-    <atom:link href="http://localhost:1313/about/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://neeldeshmukh.com/about/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
