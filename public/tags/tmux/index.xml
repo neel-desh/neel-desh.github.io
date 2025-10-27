@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tmux on Neel deshmukh</title>
+    <link>http://localhost:1313/tags/tmux/</link>
+    <description>Recent content in Tmux on Neel deshmukh</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <copyright>{year} Neel Deshmukh</copyright>
+    <lastBuildDate>Mon, 27 Oct 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/tmux/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Mouseless Development with Neovim Tmux &amp; Aerospace</title>
+      <link>http://localhost:1313/posts/my-development-setup/</link>
+      <pubDate>Mon, 27 Oct 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/my-development-setup/</guid>
+      <description>This is my day to day developement setup, that speeds up my development.</description>
+    </item>
+  </channel>
+</rss>

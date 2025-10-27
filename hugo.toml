@@ -1,4 +1,49 @@
-baseURL = 'https://example.org/'
+baseURL = 'https://neeldeshmukh.com/'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
+title = 'Neel deshmukh'
 theme = 'not-much'
+author = 'neel'
+copyright = "{year} Neel Deshmukh"
+
+[markup]
+  [markup.highlight]
+    style = 'dracula'
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[params]
+theme = "auto"
+palette = "eink"
+showThemeNotice = false
+showPostsSummary = true
+
+# Navigation
+[menu]
+  [[menu.main]]
+    identifier = "home"
+    name = "home"
+    title = "Home"
+    url = "/"
+    weight = 1
+  
+  [[menu.main]]
+    identifier = "posts"
+    name = "posts"
+    title = "posts"
+    url = "/posts"
+    weight = 3
+  
+  [[menu.main]]
+    identifier = "about"
+    name = "about"
+    title = "About"
+    url = "/about"
+    weight = 2
+  
+  [[menu.main]]
+    identifier = "tags"
+    name = "tags"
+    title = "tags"
+    url = "/tags"
+    weight = 4

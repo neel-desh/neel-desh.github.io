@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Hugo on Neel deshmukh</title>
+    <link>http://localhost:1313/tags/hugo/</link>
+    <description>Recent content in Hugo on Neel deshmukh</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <copyright>{year} neel deshmukh</copyright>
+    <lastBuildDate>Mon, 18 Mar 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/hugo/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Welcome To not-much</title>
+      <link>http://localhost:1313/posts/example-post/</link>
+      <pubDate>Mon, 18 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/example-post/</guid>
+      <description>This is an example post with a very short content and a single header.</description>
+    </item>
+  </channel>
+</rss>
