@@ -20,6 +20,7 @@
     <meta property="article:tag" content="Tmux">
     <meta property="article:tag" content="Mouseless">
     <meta property="article:tag" content="Aerospace">
+    <meta property="article:tag" content="Kanata">
 
 <title>Neel deshmukh | Mouseless Development with Neovim Tmux &amp; Aerospace</title>
 
@@ -87,21 +88,39 @@
           <ol class="breadcrumb">
             <li class="breadcrumb-item small">
               
-              <span class="draft-label">DRAFT</span> &#183;
-              
               <time datetime="2025-10-27T00:00:00&#43;00:00">October 27, 2025</time>
             </li>
             
             
             <li class="breadcrumb-item small">
-              1 minutes
+              2 minutes
             </li>
           </ol>
         </div>
       </header>
       
       <article>
-        <h2 id="lets-dive-into-my-development">Let&rsquo;s dive into my development</h2>
+        <h2 id="lets-dive-into-my-development-workflow">Let&rsquo;s dive into my development workflow</h2>
+<p>I use macbook pro M3 as my daily driver, but all the setup shown here should be easily replicated to linux or windows.</p>
+<h2 id="idealogy">Idealogy</h2>
+<p>The idea here here to have very less context switching, to press very few keystrokes, use keyboard instead of mouse/trackpad, focus on homerows &amp; just let default mode take over.</p>
+<h2 id="tools">Tools</h2>
+<p>Here are the tools that will enable us to acheive this!</p>
+<ol>
+<li>Aerospace - Tiling window manager, that will help us switch to different applications or so called spaces with just a simple keystroke. (it is an i3 alternative)</li>
+<li>Kanata - Im using kanata for homerow mods. basically to when i press &amp; hold a itll press cmd. this is for my finger to be relaxed.</li>
+<li>Neoivm - Yeah! you know it.</li>
+<li>Tmux - a session multiplexer - helps you mange multiple terminall session into a single session.</li>
+<li>mouseless.app - a tool that enables using keyboard to click on screen instead of dragging mouse and then clicking! (The usage is very limited! But I like using this)</li>
+</ol>
+<h2 id="the-setup">The Setup</h2>
+<h3 id="install-aerospace">Install Aerospace</h3>
+<p>We would be installing  <a href="https://github.com/nikitabobko/AeroSpace">aerospace</a>  using brew.</p>
+<pre tabindex="0"><code>brew install --cask nikitabobko/tap/aerospace
+</code></pre><p>once done, you can open the aerospace using spotlight or from the apps menu.</p>
+<p>Aerospace usually refers to <code>aerospace-config.yml</code> in the home directory.</p>
+<p>So in Aerospace, you can define what application to open in what window. it gives you virtual spaces!</p>
+<p>My setup is all browsers in 1st Space, Terminals and Editors in 2nd Space, Slack/Discord in 3rd space, all other in 4th Space.</p>
 
       </article>
       
@@ -113,6 +132,7 @@
         <a class="badge rounded-pill text-uppercase text-bg-secondary" href="/tags/tmux/">Tmux</a>
         <a class="badge rounded-pill text-uppercase text-bg-secondary" href="/tags/mouseless/">Mouseless</a>
         <a class="badge rounded-pill text-uppercase text-bg-secondary" href="/tags/aerospace/">Aerospace</a>
+        <a class="badge rounded-pill text-uppercase text-bg-secondary" href="/tags/kanata/">Kanata</a>
   </div>
 
       <div class="row">
