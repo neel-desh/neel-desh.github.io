@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const caseStudies = (await getCollection('case-studies', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order
+);
+---
+
+<Base title="Work" description="Case studies — problems, architecture, and outcomes.">
+  <h1>Work</h1>
+  <p>Deep-dives on systems I've built: the problem, the architecture, the tradeoffs, the outcome.</p>
+
+  {caseStudies.length === 0 && <p><em>First case study coming soon.</em></p>}
+
+  {caseStudies.map((cs) => (
+    <a class="card" href={`/case-studies/${cs.slug}`}>
+      <h3>{cs.data.title}</h3>
+      <p>{cs.data.summary}</p>
+      <p>{cs.data.stack.map((s) => <span class="tag">{s}</span>)}</p>
+    </a>
+  ))}
+</Base>

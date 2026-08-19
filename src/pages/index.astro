@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const caseStudies = (await getCollection('case-studies', ({ data }) => !data.draft))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+---
+
+<Base title="Home">
+  <section>
+    <h1>Neel Deshmukh</h1>
+    <p class="lead">
+      Backend engineer with 4+ years building <strong>distributed</strong>,
+      <strong>real-time</strong>, <strong>low-latency</strong> systems. Currently
+      building at <a href="https://github.com/punchhq">Punch</a>.
+    </p>
+    <p>
+      <a href="/about">about</a> ·
+      <a href="/case-studies">work</a> ·
+      <a href="https://www.linkedin.com/in/neeldeshmukh/">linkedin</a> ·
+      <a href="https://github.com/neel-desh">github</a>
+    </p>
+  </section>
+
+  {caseStudies.length > 0 && (
+    <section>
+      <h2>Selected work</h2>
+      {caseStudies.map((cs) => (
+        <a class="card" href={`/case-studies/${cs.slug}`}>
+          <h3>{cs.data.title}</h3>
+          <p>{cs.data.summary}</p>
+        </a>
+      ))}
+    </section>
+  )}
+</Base>

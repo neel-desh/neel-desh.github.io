@@ -1,0 +1,39 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('case-studies', ({ data }) => !data.draft);
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'case-studies'>;
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const { title, summary, stack, role, problem, outcome, date } = entry.data;
+---
+
+<Base title={title} description={summary}>
+  <p><a href="/case-studies">&larr; work</a></p>
+  <h1>{title}</h1>
+  <p class="lead">{summary}</p>
+  <p>
+    {stack.map((s) => <span class="tag">{s}</span>)}
+  </p>
+  {role && <p><strong>Role:</strong> {role}</p>}
+  <p><strong>Date:</strong> {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</p>
+
+  <h2>Problem</h2>
+  <p>{problem}</p>
+
+  <Content />
+
+  <h2>Outcome</h2>
+  <p>{outcome}</p>
+</Base>

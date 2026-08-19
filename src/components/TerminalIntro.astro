@@ -1,0 +1,103 @@
+---
+// One-time boot animation. Hidden by default (no-JS / repeat visits / reduced
+// motion never see it) — JS opts in only for a fresh session on first paint.
+const lines = [
+  '$ ssh neel@neeldeshmukh.com',
+  'booting profile...',
+  '[ok] loaded distributed systems experience',
+  '[ok] loaded elixir, ruby, typescript, python',
+  '[ok] mouseless workflow armed (neovim + tmux)',
+  '$ open .',
+];
+---
+
+<div id="boot-intro" class="boot-intro" hidden aria-hidden="true">
+  <pre class="boot-lines mono" id="boot-lines"></pre>
+</div>
+
+<style>
+  .boot-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: var(--bg);
+    color: var(--accent);
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .boot-intro:not([hidden]) {
+    display: flex;
+  }
+
+  .boot-intro.fade-out {
+    animation: boot-fade 0.4s ease forwards;
+  }
+
+  .boot-lines {
+    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+    white-space: pre-wrap;
+    line-height: 1.7;
+    max-width: 32rem;
+  }
+
+  .boot-cursor::after {
+    content: '_';
+    animation: boot-blink 1s step-end infinite;
+  }
+
+  @keyframes boot-fade {
+    to {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+
+  @keyframes boot-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+</style>
+
+<script is:inline define:vars={{ lines }}>
+  (function () {
+    const KEY = 'nd-intro-seen';
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || sessionStorage.getItem(KEY)) return;
+
+    const overlay = document.getElementById('boot-intro');
+    const target = document.getElementById('boot-lines');
+    if (!overlay || !target) return;
+
+    overlay.hidden = false;
+    sessionStorage.setItem(KEY, '1');
+
+    let i = 0;
+    let char = 0;
+
+    function typeNext() {
+      if (i >= lines.length) {
+        setTimeout(() => {
+          overlay.classList.add('fade-out');
+          setTimeout(() => overlay.remove(), 450);
+        }, 350);
+        return;
+      }
+      const line = lines[i];
+      if (char === 0) target.textContent += (i > 0 ? '\n' : '');
+      target.textContent += line[char];
+      char++;
+      if (char >= line.length) {
+        i++;
+        char = 0;
+        setTimeout(typeNext, 160);
+      } else {
+        setTimeout(typeNext, 14);
+      }
+    }
+
+    requestAnimationFrame(typeNext);
+  })();
+</script>

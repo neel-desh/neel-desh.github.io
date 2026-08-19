@@ -1,0 +1,44 @@
+---
+import '../styles/global.css';
+import TerminalIntro from '../components/TerminalIntro.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Neel Deshmukh — backend & distributed systems engineer.' } = Astro.props;
+const current = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Neel Deshmukh</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <TerminalIntro />
+    <div class="wrap">
+      <header class="site-header">
+        <a class="brand" href="/">neel deshmukh</a>
+        <nav class="site-nav">
+          <a href="/" aria-current={current === '/' ? 'page' : undefined}>home</a>
+          <a href="/case-studies" aria-current={current.startsWith('/case-studies') ? 'page' : undefined}>work</a>
+          <a href="/about" aria-current={current === '/about' ? 'page' : undefined}>about</a>
+        </nav>
+      </header>
+      <main>
+        <slot />
+      </main>
+      <footer class="site-footer">
+        <span>&copy; {new Date().getFullYear()} Neel Deshmukh</span>
+        <span> · <a href="https://github.com/neel-desh">github</a></span>
+        <span> · <a href="https://www.linkedin.com/in/neeldeshmukh/">linkedin</a></span>
+      </footer>
+    </div>
+  </body>
+</html>

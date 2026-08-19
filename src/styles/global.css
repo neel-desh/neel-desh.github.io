@@ -1,0 +1,140 @@
+:root {
+  --bg: #0b0d0f;
+  --bg-raised: #121519;
+  --fg: #e6e8eb;
+  --fg-dim: #9aa4ad;
+  --accent: #7ee787;
+  --accent-dim: #3fa15a;
+  --border: #23282e;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  --max-w: 42rem;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #fbfbfa;
+    --bg-raised: #f1f1ef;
+    --fg: #17191c;
+    --fg-dim: #5b636b;
+    --accent: #1a7f37;
+    --accent-dim: #0f5c27;
+    --border: #e1e2e0;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 3rem 1.5rem 6rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-color: var(--accent-dim);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-color: var(--accent);
+}
+
+code, pre, .mono {
+  font-family: var(--font-mono);
+}
+
+nav.site-nav {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+nav.site-nav a {
+  color: var(--fg-dim);
+  text-decoration: none;
+}
+
+nav.site-nav a:hover,
+nav.site-nav a[aria-current='page'] {
+  color: var(--accent);
+}
+
+header.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.brand {
+  font-family: var(--font-mono);
+  color: var(--fg);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  margin: 0.15rem 0.3rem 0.15rem 0;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-raised);
+  margin-bottom: 1rem;
+  display: block;
+  text-decoration: none;
+  color: var(--fg);
+}
+
+.card:hover {
+  border-color: var(--accent-dim);
+}
+
+.card h3 {
+  margin: 0 0 0.4rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--fg-dim);
+}
+
+footer.site-footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+}
