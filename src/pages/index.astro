@@ -1,33 +1,56 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getCollection } from 'astro:content';
+import { getListedCaseStudies, getListedMoments } from '../lib/visibility';
 
-const caseStudies = (await getCollection('case-studies', ({ data }) => !data.draft))
-  .sort((a, b) => a.data.order - b.data.order)
-  .slice(0, 3);
+const caseStudies = (await getListedCaseStudies()).slice(0, 3);
+const moments = await getListedMoments();
+
+// Headline numbers, pulled from the moment store rather than hand-written, so
+// they cannot drift from the evidence behind them.
+const HEADLINE_METRICS = [
+  'market-data-engine',
+  'candles-api',
+  'search-engine',
+  'timescale-migration',
+];
+const metrics = HEADLINE_METRICS.flatMap((id) => {
+  const m = moments.find((x) => x.id === id);
+  return m?.data.metrics.slice(0, 1).map((x) => ({ ...x, id })) ?? [];
+});
 ---
 
 <Base title="Home">
-  <section>
-    <h1>Neel Deshmukh</h1>
-    <p class="lead">
-      Backend engineer with 4+ years building <strong>distributed</strong>,
-      <strong>real-time</strong>, <strong>low-latency</strong> systems. Currently
-      building at <a href="https://github.com/punchhq">Punch</a>.
-    </p>
-    <p>
-      <a href="/about">about</a> ·
-      <a href="/case-studies">work</a> ·
-      <a href="https://www.linkedin.com/in/neeldeshmukh/">linkedin</a> ·
-      <a href="https://github.com/neel-desh">github</a>
-    </p>
-  </section>
+  <h1>Neel Deshmukh</h1>
+  <p class="lead">
+    Backend engineer, 4+ years on <strong>distributed</strong>,
+    <strong>real-time</strong>, <strong>low-latency</strong> systems —
+    market data, risk controls, and payments at
+    <a href="https://github.com/punchhq">Punch</a>.
+  </p>
+
+  {metrics.length > 0 && (
+    <dl class="metrics">
+      {metrics.map((m) => (
+        <div>
+          <dt>{m.value}</dt>
+          <dd>{m.label}</dd>
+        </div>
+      ))}
+    </dl>
+  )}
+
+  <p>
+    <a href="/case-studies">work</a> ·
+    <a href="/about">about</a> ·
+    <a href="https://github.com/neel-desh">github</a> ·
+    <a href="https://www.linkedin.com/in/neeldeshmukh/">linkedin</a>
+  </p>
 
   {caseStudies.length > 0 && (
     <section>
       <h2>Selected work</h2>
       {caseStudies.map((cs) => (
-        <a class="card" href={`/case-studies/${cs.slug}`}>
+        <a class="card" href={`/case-studies/${cs.id}`}>
           <h3>{cs.data.title}</h3>
           <p>{cs.data.summary}</p>
         </a>
@@ -35,3 +58,29 @@ const caseStudies = (await getCollection('case-studies', ({ data }) => !data.dra
     </section>
   )}
 </Base>
+
+<style>
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1rem 1.5rem;
+    margin: 2rem 0;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .metrics div {
+    margin: 0;
+  }
+  .metrics dt {
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .metrics dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+    color: var(--fg-dim);
+  }
+</style>

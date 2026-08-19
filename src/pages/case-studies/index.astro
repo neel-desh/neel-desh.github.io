@@ -1,23 +1,109 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection } from 'astro:content';
+import { getListedCaseStudies, getListedMoments } from '../../lib/visibility';
 
-const caseStudies = (await getCollection('case-studies', ({ data }) => !data.draft)).sort(
-  (a, b) => a.data.order - b.data.order
-);
+const caseStudies = await getListedCaseStudies();
+const moments = await getListedMoments();
+
+// Rollup by kind, in narrative order rather than alphabetical.
+const KINDS = [
+  { key: 'built', label: 'Built', blurb: 'Systems shipped end to end.' },
+  { key: 'solved', label: 'Solved', blurb: 'Gaps closed, dead ends cleared.' },
+  { key: 'scaled', label: 'Scaled', blurb: 'Taken to real production volume.' },
+  { key: 'operated', label: 'Operated', blurb: 'On-call, incidents, aftermath.' },
+  { key: 'learned', label: 'Learning', blurb: 'Picked up along the way.' },
+] as const;
+
+const rollup = KINDS.map((k) => ({
+  ...k,
+  items: moments.filter((m) => m.data.kind === k.key),
+})).filter((k) => k.items.length > 0);
 ---
 
-<Base title="Work" description="Case studies — problems, architecture, and outcomes.">
+<Base title="Work" description="Case studies and a record of what shipped - problems, architecture, outcomes.">
   <h1>Work</h1>
-  <p>Deep-dives on systems I've built: the problem, the architecture, the tradeoffs, the outcome.</p>
-
-  {caseStudies.length === 0 && <p><em>First case study coming soon.</em></p>}
+  <p class="lead">
+    Deep-dives on systems I've built: the problem, the architecture, the
+    tradeoffs, the outcome.
+  </p>
 
   {caseStudies.map((cs) => (
-    <a class="card" href={`/case-studies/${cs.slug}`}>
+    <a class="card" href={`/case-studies/${cs.id}`}>
       <h3>{cs.data.title}</h3>
       <p>{cs.data.summary}</p>
-      <p>{cs.data.stack.map((s) => <span class="tag">{s}</span>)}</p>
+      <p class="card-meta">{cs.data.stack.map((s) => <span class="tag">{s}</span>)}</p>
     </a>
   ))}
+
+  <h2>Record</h2>
+  <p>Everything above is assembled from these.</p>
+
+  {rollup.map((group) => (
+    <section class="rollup">
+      <h3>
+        {group.label}
+        <span class="rollup-count">{group.items.length}</span>
+      </h3>
+      <p class="rollup-blurb">{group.blurb}</p>
+      <ul class="moment-list">
+        {group.items.map((m) => (
+          <li>
+            {m.data.project ? (
+              <a href={`/case-studies/${m.data.project}`}>{m.data.title}</a>
+            ) : (
+              <span>{m.data.title}</span>
+            )}
+            {m.data.metrics.length > 0 && (
+              <span class="moment-metric">
+                {m.data.metrics.map((x) => x.value).join(' · ')}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
 </Base>
+
+<style>
+  .rollup {
+    margin: 2rem 0;
+  }
+  .rollup h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.2rem;
+  }
+  .rollup-count {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--fg-dim);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0 0.45rem;
+  }
+  .rollup-blurb {
+    color: var(--fg-dim);
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+  }
+  .moment-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 1px solid var(--border);
+  }
+  .moment-list li {
+    padding: 0.35rem 0 0.35rem 1rem;
+  }
+  .moment-metric {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent-dim);
+  }
+  .card-meta {
+    margin-top: 0.6rem;
+  }
+</style>

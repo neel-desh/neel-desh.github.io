@@ -1,33 +1,43 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { render, type CollectionEntry } from 'astro:content';
+import { getRenderableCaseStudies, getRenderableMoments } from '../../lib/visibility';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('case-studies', ({ data }) => !data.draft);
+  const [entries, moments] = await Promise.all([
+    getRenderableCaseStudies(),
+    getRenderableMoments(),
+  ]);
   return entries.map((entry) => ({
-    params: { slug: entry.slug },
-    props: { entry },
+    params: { slug: entry.id },
+    props: {
+      entry,
+      related: moments.filter((m) => m.data.project === entry.id),
+    },
   }));
 }
 
 interface Props {
   entry: CollectionEntry<'case-studies'>;
+  related: CollectionEntry<'moments'>[];
 }
 
-const { entry } = Astro.props;
-const { Content } = await entry.render();
-const { title, summary, stack, role, problem, outcome, date } = entry.data;
+const { entry, related } = Astro.props;
+const { Content } = await render(entry);
+const { title, summary, stack, role, org, problem, outcome, date } = entry.data;
 ---
 
 <Base title={title} description={summary}>
   <p><a href="/case-studies">&larr; work</a></p>
   <h1>{title}</h1>
   <p class="lead">{summary}</p>
-  <p>
-    {stack.map((s) => <span class="tag">{s}</span>)}
+
+  <p class="meta mono">
+    {org && <span>{org}</span>}
+    {role && <span> · {role}</span>}
+    <span> · {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</span>
   </p>
-  {role && <p><strong>Role:</strong> {role}</p>}
-  <p><strong>Date:</strong> {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</p>
+  <p>{stack.map((s) => <span class="tag">{s}</span>)}</p>
 
   <h2>Problem</h2>
   <p>{problem}</p>
@@ -36,4 +46,43 @@ const { title, summary, stack, role, problem, outcome, date } = entry.data;
 
   <h2>Outcome</h2>
   <p>{outcome}</p>
+
+  {related.length > 0 && (
+    <>
+      <h2>Evidence</h2>
+      <ul class="evidence">
+        {related.map((m) => (
+          <li>
+            <strong>{m.data.title}</strong>
+            {m.data.metrics.length > 0 && (
+              <span class="evidence-metric">
+                {m.data.metrics.map((x) => `${x.label}: ${x.value}`).join(' · ')}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
 </Base>
+
+<style>
+  .meta {
+    font-size: 0.8rem;
+    color: var(--fg-dim);
+  }
+  .evidence {
+    list-style: none;
+    padding: 0;
+    border-left: 1px solid var(--border);
+  }
+  .evidence li {
+    padding: 0.4rem 0 0.4rem 1rem;
+  }
+  .evidence-metric {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent-dim);
+  }
+</style>

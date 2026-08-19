@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && npm run check:visibility",
+    "check:visibility": "node scripts/check-visibility.mjs",
     "preview": "astro preview",
     "check": "astro check"
   },
