@@ -21,9 +21,29 @@ export interface CorpusChunk {
   url: string | null;
   date: string;
   stack: string[];
+  /** How the work counts. Moments only - case studies have no kind. */
+  kind?: string;
   /** Plain text the embedding model sees, and the chat quotes from. */
   text: string;
 }
+
+/**
+ * What each kind means, spelled out for the model.
+ *
+ * Without this, a question like "what broke in production?" fails against an
+ * entry titled "Stopped a runaway replication-lag incident" - the words do not
+ * overlap, so the model concludes the record has nothing. The kind is the
+ * bridge between how someone asks and how the entry is written, and it was
+ * missing from the corpus entirely.
+ */
+const KIND_GLOSS: Record<string, string> = {
+  built: 'Category: built - a system shipped end to end.',
+  solved: 'Category: solved - a gap closed or a dead end cleared.',
+  scaled: 'Category: scaled - taken to real production volume.',
+  operated:
+    'Category: operated - production incident, outage, on-call work, something breaking and being fixed.',
+  learned: 'Category: learned - study and practice, not shipped work.',
+};
 
 export const GET: APIRoute = async () => {
   const [moments, caseStudies] = await Promise.all([
@@ -39,11 +59,18 @@ export const GET: APIRoute = async () => {
       id: `moment:${m.id}`,
       type: 'moment',
       title: m.data.title,
-      url: m.data.project ? `/case-studies/${m.data.project}` : null,
+      // Every moment resolves somewhere: its case study if it has one, else its
+      // own anchor in the record. A citation that cannot be clicked is not a
+      // citation, it is just the answer repeated in a box.
+      url: m.data.project
+        ? `/case-studies/${m.data.project}`
+        : `/case-studies#${m.id}`,
       date: m.data.date.toISOString().slice(0, 10),
       stack: m.data.stack,
+      kind: m.data.kind,
       text: [
         m.data.title,
+        KIND_GLOSS[m.data.kind] ?? '',
         m.data.org ? `At ${m.data.org}.` : '',
         m.data.summary,
         metrics,

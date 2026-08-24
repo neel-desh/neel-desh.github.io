@@ -1,0 +1,432 @@
+---
+/**
+ * The chat, as a floating dock pinned to the bottom of the viewport.
+ *
+ * It is the front door, so it does not scroll away with the page. The answer
+ * stacks directly above the input inside the same rounded block, which keeps
+ * the question, the answer, and the sources it came from in one object
+ * instead of scattering them down the page.
+ *
+ * No framework: one input, one fetch, one node swap. A renderer would cost
+ * more than the feature.
+ *
+ * The starters are deliberately specific. "Ask me anything" gets vague
+ * questions, and vague questions get vague answers, so these point straight at
+ * work the record can actually evidence.
+ */
+/**
+ * Every starter here has been run against the live corpus and answers.
+ *
+ * The first pass was written to sound good and shipped untested: two of the
+ * four ("Hardest concurrency problem?", "A tradeoff you regret?") asked about
+ * things no entry covers, so clicking them returned "not in the record". A
+ * starter button that refuses is worse than no button - it reads as broken.
+ */
+const STARTERS = [
+  'What broke in production?',
+  'Where did latency come from?',
+  'What has he scaled?',
+  'Is he any good at databases?',
+];
+---
+
+<div class="chat-dock" id="chat-dock" data-state="idle">
+  <div class="chat-panel">
+    <!-- Answers stack here, above the input, inside the same block. -->
+    <div class="chat-answer" id="chat-answer" aria-live="polite" hidden>
+      <button type="button" class="chat-close" id="chat-close" aria-label="Close answer">×</button>
+      <p class="answer-q" id="answer-q"></p>
+      <p class="answer-a" id="answer-a"></p>
+      <div class="answer-cites" id="answer-cites"></div>
+    </div>
+
+    <div class="chat-starters" id="chat-starters">
+      <span class="starters-note">answers only from the work here, with sources</span>
+      {STARTERS.map((s) => <button type="button" class="starter" data-q={s}>{s}</button>)}
+    </div>
+
+    <form class="chat-form" id="chat-form">
+      <label class="sr-only" for="chat-input">Ask a question about Neel's work</label>
+      <span class="prompt-mark" aria-hidden="true">&gt;</span>
+      <input
+        id="chat-input"
+        name="question"
+        type="text"
+        autocomplete="off"
+        maxlength="500"
+        placeholder="ask about a system, a tradeoff, an outcome…"
+      />
+      <button type="submit" id="chat-send" aria-label="Ask">ask</button>
+    </form>
+  </div>
+</div>
+
+<style>
+  .chat-dock {
+    position: fixed;
+    left: 50%;
+    bottom: 1.25rem;
+    transform: translateX(-50%);
+    width: min(var(--max-w), calc(100vw - 2rem));
+    z-index: 50;
+  }
+
+  .chat-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--bg-raised);
+    /* The page scrolls under this, so it needs to read as a separate plane. */
+    box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.55), 0 2px 8px -2px rgba(0, 0, 0, 0.35);
+  }
+  @media (prefers-color-scheme: light) {
+    .chat-panel {
+      box-shadow: 0 8px 32px -10px rgba(0, 0, 0, 0.18), 0 2px 6px -2px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  /* ---- answer ---------------------------------------------------------- */
+
+  .chat-answer {
+    position: relative;
+    padding: 0.85rem 1rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    max-height: min(45vh, 22rem);
+    overflow-y: auto;
+  }
+  .chat-answer[hidden] {
+    display: none;
+  }
+
+  .chat-close {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--fg-dim);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.2rem 0.3rem;
+  }
+  .chat-close:hover {
+    color: var(--accent);
+  }
+
+  .answer-q {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--fg-dim);
+    margin: 0 0 0.45rem;
+    padding-right: 1.25rem;
+  }
+  .answer-q::before {
+    content: '> ';
+    color: var(--accent-dim);
+  }
+  .answer-a {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+  .answer-a.unanswered {
+    color: var(--fg-dim);
+  }
+  .answer-a.thinking::after {
+    content: '▍';
+    color: var(--accent);
+    animation: blink 1s steps(2, start) infinite;
+  }
+  @keyframes blink {
+    to {
+      visibility: hidden;
+    }
+  }
+
+  /* Sources are a pointer to where the answer came from, not a second copy of
+     it. They sit below a rule, are labelled, and are quieter than the answer -
+     full-strength accent pills competed with the text they were citing. */
+  .answer-cites {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 0.45rem;
+    margin-top: 0.8rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--border);
+  }
+  .answer-cites:empty {
+    display: none;
+  }
+  /* These two are created in JS, so they never get Astro's scoping attribute
+     and a scoped selector silently does nothing. :global is required. */
+  :global(.cites-label) {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-dim);
+    opacity: 0.65;
+  }
+  :global(.answer-cites .cite) {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--fg-dim);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1px;
+  }
+  :global(.answer-cites .cite:hover) {
+    color: var(--accent);
+    border-bottom-color: var(--accent-dim);
+  }
+
+  /* ---- starters -------------------------------------------------------- */
+
+  .chat-starters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0 0.15rem;
+  }
+  .chat-starters[hidden] {
+    display: none;
+  }
+  /* The grounding claim, stated once where the input is rather than as a
+     paragraph on the page. Full width so it reads as a caption, not a chip. */
+  .starters-note {
+    flex-basis: 100%;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--fg-dim);
+    opacity: 0.8;
+    margin-bottom: 0.1rem;
+  }
+  .starter {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--fg-dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.18rem 0.6rem;
+    cursor: pointer;
+  }
+  .starter:hover {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+  }
+
+  /* ---- input ----------------------------------------------------------- */
+
+  .chat-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.15rem 0.15rem 0.15rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+  }
+  .chat-form:focus-within {
+    border-color: var(--accent-dim);
+  }
+  .prompt-mark {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--accent-dim);
+  }
+  .chat-form input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    padding: 0.5rem 0;
+    color: var(--fg);
+    background: transparent;
+    border: none;
+  }
+  .chat-form input:focus {
+    outline: none;
+  }
+  .chat-form button {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding: 0.45rem 1rem;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .chat-form button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .answer-a.thinking::after {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  const dock = document.getElementById('chat-dock') as HTMLDivElement;
+  const form = document.getElementById('chat-form') as HTMLFormElement;
+  const input = document.getElementById('chat-input') as HTMLInputElement;
+  const send = document.getElementById('chat-send') as HTMLButtonElement;
+  const starters = document.getElementById('chat-starters') as HTMLDivElement;
+  const answerBox = document.getElementById('chat-answer') as HTMLDivElement;
+  const answerQ = document.getElementById('answer-q') as HTMLParagraphElement;
+  const answerA = document.getElementById('answer-a') as HTMLParagraphElement;
+  const answerCites = document.getElementById('answer-cites') as HTMLDivElement;
+  const close = document.getElementById('chat-close') as HTMLButtonElement;
+
+  interface Citation {
+    id: string;
+    title: string;
+    url: string | null;
+  }
+
+  /**
+   * The dock is fixed, so it covers the end of the page. Reserve exactly its
+   * height as bottom padding, remeasured whenever it changes size.
+   */
+  /**
+   * Publish the dock's height so the layout can size around it.
+   * global.css uses --dock-h for the sticky-footer calc; without it the fixed
+   * dock sits on top of the footer whenever the page is shorter than the
+   * viewport. Remeasured on every resize, since the answer box changes height.
+   */
+  function reserveSpace() {
+    const h = dock.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--dock-h', `${h + 20}px`);
+  }
+  new ResizeObserver(reserveSpace).observe(dock);
+  reserveSpace();
+
+  function hideAnswer() {
+    answerBox.hidden = true;
+    starters.hidden = false;
+    reserveSpace();
+  }
+  close.addEventListener('click', hideAnswer);
+
+  /**
+   * Source labels are pointers, not restatements.
+   *
+   * Titles in the record are full sentences ("Stopped a runaway replication-lag
+   * incident with zero data loss"), so printing one under an answer that just
+   * said the same thing reads as the model repeating itself. Trim to the first
+   * few words at a word boundary; the full title stays in the tooltip.
+   */
+  function shortLabel(title: string, max = 32): string {
+    if (title.length <= max) return title;
+    const cut = title.slice(0, max);
+    const space = cut.lastIndexOf(' ');
+    return (space > 12 ? cut.slice(0, space) : cut).replace(/[,.;:]$/, '') + '…';
+  }
+
+  /** textContent everywhere: nothing from the model is parsed as markup. */
+  function showAnswer(question: string, text: string, answered: boolean, cites: Citation[]) {
+    answerQ.textContent = question;
+    answerA.textContent = text;
+    answerA.classList.remove('thinking');
+    answerA.classList.toggle('unanswered', !answered);
+
+    answerCites.replaceChildren();
+    const linkable = cites.filter((c) => c.url);
+    if (linkable.length > 0) {
+      const label = document.createElement('span');
+      label.className = 'cites-label';
+      label.textContent = linkable.length === 1 ? 'source' : 'sources';
+      answerCites.appendChild(label);
+
+      for (const c of linkable) {
+        const a = document.createElement('a');
+        a.className = 'cite';
+        a.href = c.url as string;
+        a.textContent = shortLabel(c.title);
+        a.title = c.title;
+        answerCites.appendChild(a);
+      }
+    }
+    reserveSpace();
+  }
+
+  async function ask(question: string) {
+    if (!question.trim()) return;
+    input.value = '';
+    send.disabled = true;
+    starters.hidden = true;
+
+    answerBox.hidden = false;
+    answerQ.textContent = question;
+    answerA.textContent = 'thinking';
+    answerA.className = 'answer-a thinking';
+    answerCites.replaceChildren();
+    reserveSpace();
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showAnswer(question, data.error ?? 'Something went wrong.', false, []);
+        return;
+      }
+      showAnswer(question, data.answer, data.answered, data.citations ?? []);
+    } catch {
+      showAnswer(question, 'Could not reach the chat service. Try again in a moment.', false, []);
+    } finally {
+      send.disabled = false;
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    ask(input.value);
+  });
+
+  starters.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.starter') as HTMLButtonElement | null;
+    if (btn?.dataset.q) ask(btn.dataset.q);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !answerBox.hidden) hideAnswer();
+  });
+
+  /**
+   * ?q=... asks on load, so a question and its answer can be linked to.
+   * Handy for sharing "ask it about the kill switch" without making someone
+   * retype it, and it makes the answer state reachable for screenshots.
+   */
+  const preset = new URLSearchParams(location.search).get('q');
+  if (preset) ask(preset.slice(0, 500));
+</script>

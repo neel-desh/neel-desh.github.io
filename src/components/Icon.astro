@@ -1,0 +1,35 @@
+---
+/**
+ * Inline SVG icons. Inline rather than sprited or fetched: there are two of
+ * them, and they use currentColor so they follow link colour for free in both
+ * themes without a second definition.
+ */
+interface Props {
+  name: 'github' | 'linkedin';
+  size?: number;
+}
+const { name, size = 18 } = Astro.props;
+
+const PATHS: Record<Props['name'], string> = {
+  github:
+    'M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.24-.02-2.25-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.82 1.1.82 2.22 0 1.6-.02 2.9-.02 3.29 0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5Z',
+  linkedin:
+    'M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM2.4 9.75h5.16V21H2.4V9.75Zm7.72 0h4.95v1.54h.07c.69-1.24 2.37-2.55 4.88-2.55 5.22 0 6.18 3.3 6.18 7.6V21h-5.16v-5.63c0-1.34-.02-3.07-1.94-3.07-1.95 0-2.25 1.46-2.25 2.97V21h-5.16V9.75h.43Z',
+};
+
+const LABELS: Record<Props['name'], string> = {
+  github: 'GitHub',
+  linkedin: 'LinkedIn',
+};
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="currentColor"
+  aria-hidden="true"
+  focusable="false"
+  data-icon={name}
+><title>{LABELS[name]}</title><path d={PATHS[name]} /></svg>

@@ -5,3 +5,16 @@ dist/
 .env.*
 !.env.example
 .DS_Store
+
+# Local secrets for `wrangler pages dev`. Never committed.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# Literal strings the PII check greps dist/ for (real email, phone number).
+# Committing this file would defeat its own purpose.
+.pii-denylist
+themes/
+
+# Local `wrangler pages dev` state. Machine-local, never committed.
+.wrangler/

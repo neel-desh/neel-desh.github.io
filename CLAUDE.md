@@ -91,30 +91,111 @@ rm dist/leak-test.html
 `src/content/moments/EXAMPLE-private-moment.md` is the permanent canary. Keep
 it private.
 
-## Next: the RAG chat
+## The RAG chat — built
 
-Design settled, **UX not yet specified — waiting on Neel's ideas.**
+Lives in `functions/api/chat.ts` as a Cloudflare Pages Function, in the same
+repo and same deploy as the site. **Not** a separate Worker: Pages Functions
+mean one thing to deploy and version, which serves the "few moving parts"
+constraint better than the original plan did.
 
-Architecture decided:
+### There is no vector search, on purpose
 
-- Corpus is small (~16 chunks today, maybe 50–100 eventually). **No vector DB.**
-  Vectorize is overkill at this size.
-- Embed at build time → ship `corpus-embedded.json` as a static asset
-  (~100 chunks × 384 dims ≈ 150KB, less if quantized).
-- **Cosine similarity in the browser.** Retrieval is instant, offline, free.
-- The Worker does **generation only** — stateless, tiny, no bindings, no
-  ingestion pipeline. One moving part instead of four.
-- Cloudflare Workers AI free tier (bge embeddings + a Llama for generation).
-  If quality disappoints, swapping the Worker's upstream is a ~10-line change;
-  Claude Haiku 4.5 is $1/$5 per MTok, pennies a month at this traffic. Not
-  needed to start.
+The earlier plan (build-time embeddings, `corpus-embedded.json`, browser-side
+cosine similarity) was **dropped**. Two reasons:
 
-Open questions for Neel:
+1. It does not survive the switch to Gemini. Embedding the *query* needs an API
+   call with a key, so the browser cannot retrieve without either shipping the
+   key or loading ~20MB of transformers.js.
+2. At 16 chunks (~8K tokens) the whole corpus fits in one prompt. An index
+   would add an embedding model, stored vectors, and a drift problem between
+   the index and the content, in exchange for nothing at this size.
 
-- Dedicated page, or inline on the homepage?
-- Does it cite sources back to case studies?
-- Framing — "ask about my work", or something more opinionated?
-- Behaviour when asked something outside the corpus?
+So every call sends the entire public corpus. Revisit past **~100 chunks**,
+where the prompt starts costing more than an index would.
+
+The side benefit matters more than the cost saving: the whole prompt is
+auditable. There is no retrieval step that might quietly pull the wrong thing,
+and "only public content is reachable" is enforced by what the build wrote to
+disk rather than by a similarity threshold.
+
+### Model
+
+`gemini-3.5-flash-lite` (cheapest GA tier), called over the REST API with
+`x-goog-api-key`.
+
+> **`gemini-embedding-001` was shut down 2026-07-14.** If embeddings are ever
+> reintroduced, the replacement is `gemini-embedding-2`. Note the models page
+> still listed the dead model as GA in Aug 2026, so re-verify rather than
+> trusting the docs page.
+
+### Guardrails, in the order they run
+
+| Layer | What | Where |
+| --- | --- | --- |
+| L0 | Private content absent from `dist/`, so it cannot be retrieved at all | `check-visibility.mjs` |
+| L1 | Input guard: method, content-type, size, injection patterns, rate limit | `chat.ts` |
+| L2 | Structured output — model must return JSON matching a schema | `responseSchema` |
+| L3 | Citation validation — a cited id not in the corpus voids the answer | `chat.ts` |
+| L4 | Output PII scan, same patterns as the build gate | `pii-patterns.mjs` |
+
+**L0 does most of the work. L3 is the one people skip** — a fabricated citation
+is the signature of a fabricated answer, and catching it is deterministic.
+
+L1's injection list is a speed bump, not a wall. It exists to avoid paying for
+obvious garbage; L0 is what actually makes the endpoint safe.
+
+### UX (settled)
+
+- **Floating dock**, fixed to the bottom of the viewport, rounded, on every
+  page except `/capture`. It is the front door, so it does not scroll away.
+- The answer stacks **above the input inside the same block**, so question,
+  answer, and sources stay one object.
+- **Cites every source** as a pill linking to the case study.
+- Starters are deliberately specific. "Ask me anything" gets vague questions,
+  and vague questions get vague answers.
+- Out of corpus → says so plainly rather than guessing.
+- The dock is `position: fixed`, so a `ResizeObserver` reserves matching
+  bottom padding on `body`. Without it the dock covers the end of every page.
+
+## PII enforcement
+
+`src/lib/pii-patterns.mjs` is the **only** definition of what counts as PII,
+imported by both the build gate (`scripts/check-pii.mjs`, scans `dist/`) and
+the chat function (scans the model's answer). Same one-gate principle as
+`visibility.ts`: the two ends cannot drift apart.
+
+Literal strings (real email, real phone) live in `.pii-denylist`, which is
+**gitignored** — committing it would defeat its own purpose.
+
+`node scripts/check-pii.mjs --self-test` runs 10 canaries, one per pattern,
+and is wired into `npm run build`. Same discipline as the visibility canary:
+**a check that has never failed is not known to work.**
+
+A real gap this caught: the first phone regex missed `+91 98765 43210`, the
+most common written Indian format, because it required 10 consecutive digits.
+
+## Capture — deployed, behind Cloudflare Access
+
+`/capture` is a form; `functions/api/capture.ts` **commits a `.md` to the repo**
+via the GitHub contents API.
+
+**Why git and not a database:** a database would make two sources of truth and
+would put content live without passing the build gates. Committing a file means
+a new moment clears `check-visibility` and `check-pii` on the next build like
+anything written by hand. There is no path from the form to the live site that
+skips them.
+
+Auth is Cloudflare Access, but **the JWT is verified in the function as well**.
+Access is configured in a dashboard; a removed or misconfigured policy would
+otherwise silently open a write path to the repository. The edge check and the
+function check fail independently.
+
+Verified rejected: no token, garbage, `alg=none`, HS256 algorithm confusion,
+wrong issuer, wrong audience, expired. The signature-verify path itself can
+only be tested against a real Access tenant.
+
+Visibility on capture **fails closed**: an unrecognised value becomes `private`,
+matching the schema default.
 
 ## Reference: mygraph.id structure
 
@@ -181,11 +262,41 @@ prompt engineering. Editor: Neovim.
 
 ```sh
 npm install
-npm run dev              # local dev
-npm run build            # build + visibility check
+npm run dev              # local dev (site only, no Functions)
+npm run build            # build + visibility check + pii check
 npm run check            # astro check (typecheck)
 npm run check:visibility # leak check alone (needs an existing dist/)
+npm run check:pii        # pii self-test + scan (needs an existing dist/)
+
+# Functions run only under wrangler, not `astro dev`:
+npx wrangler pages dev dist --binding GEMINI_API_KEY=...
+npx tsc -p functions/tsconfig.json --noEmit   # functions typecheck
 ```
+
+`functions/` is excluded from the root tsconfig and carries its own — the
+Workers globals conflict with the DOM lib.
+
+## Deploy: Cloudflare Pages
+
+Moved off GitHub Pages. Build `npm run build`, output `dist`, Functions picked
+up from `functions/` automatically.
+
+Secrets (dashboard, or `npx wrangler pages secret put <NAME>`) — never in
+`wrangler.toml`, which is committed:
+
+| Name | For |
+| --- | --- |
+| `GEMINI_API_KEY` | chat generation |
+| `GITHUB_TOKEN` | fine-grained PAT, **Contents: write**, this repo only |
+| `GITHUB_REPO` | `owner/repo` |
+| `GITHUB_BRANCH` | optional, defaults to `main` |
+| `ACCESS_TEAM_DOMAIN` | `<team>` from `<team>.cloudflareaccess.com` |
+| `ACCESS_AUD` | the Access application's AUD tag |
+
+Then add a Cloudflare Access application covering `/capture` **and**
+`/api/capture` — protecting only the page would leave the write endpoint open
+to anyone who knows the path. The in-function JWT check is the backstop, not
+the primary control.
 
 ## Conventions
 

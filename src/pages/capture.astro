@@ -1,0 +1,385 @@
+---
+import Base from '../layouts/Base.astro';
+
+/**
+ * Capture: the authoring surface for the moment store.
+ *
+ * This page is behind Cloudflare Access. It holds no secrets - it is a form,
+ * and the endpoint it posts to verifies the Access JWT itself - but it is
+ * marked noindex because it has no business in a search result.
+ *
+ * Submitting commits a .md file to the repo, which triggers a rebuild. The
+ * moment therefore passes the same visibility and PII gates as anything
+ * written by hand. There is no path from this form to the live site that
+ * skips them.
+ */
+const KINDS = [
+  { value: 'built', hint: 'Shipped a system end to end.' },
+  { value: 'solved', hint: 'Closed a gap, cleared a dead end.' },
+  { value: 'scaled', hint: 'Took it to real production volume.' },
+  { value: 'operated', hint: 'On-call, incident, aftermath.' },
+  { value: 'learned', hint: 'Picked up along the way.' },
+];
+const today = new Date().toISOString().slice(0, 10);
+---
+
+<Base title="Capture" description="Add a moment to the record.">
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+
+  <h1>Capture</h1>
+  <p class="lead">
+    One dated, evidenced thing. Committing writes a file to the repo, which
+    rebuilds the site, so it clears the same visibility and PII gates as
+    anything written by hand.
+  </p>
+
+  <form id="capture-form" class="capture">
+    <label>
+      <span>Title</span>
+      <input name="title" required maxlength="140" placeholder="Built a market-data capture &amp; replay engine" />
+    </label>
+
+    <div class="row">
+      <label>
+        <span>Kind</span>
+        <select name="kind" required>
+          {KINDS.map((k) => <option value={k.value}>{k.value}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>Date</span>
+        <input name="date" type="date" required value={today} />
+      </label>
+      <label>
+        <span>Org</span>
+        <input name="org" maxlength="80" placeholder="Punch" />
+      </label>
+    </div>
+    <p class="hint" id="kind-hint">{KINDS[0].hint}</p>
+
+    <label>
+      <span>Summary</span>
+      <textarea name="summary" required maxlength="500" rows="2"
+        placeholder="One sentence. What it was and what it did."></textarea>
+    </label>
+
+    <fieldset class="metrics-field">
+      <legend>Metrics</legend>
+      <p class="hint">
+        Evidence, not vibes. Each one should be copy-pasteable from something
+        real, like a dashboard.
+      </p>
+      <div id="metric-rows"></div>
+      <button type="button" id="add-metric" class="ghost">+ metric</button>
+    </fieldset>
+
+    <label>
+      <span>Stack</span>
+      <input name="stack" placeholder="Go, NATS, Market Data" />
+      <span class="hint">Comma separated.</span>
+    </label>
+
+    <label>
+      <span>Case study id</span>
+      <input name="project" maxlength="80" placeholder="market-data-capture-replay" />
+      <span class="hint">Optional. Links this moment to a long-form write-up.</span>
+    </label>
+
+    <label>
+      <span>Notes</span>
+      <textarea name="body" rows="5" maxlength="4000"
+        placeholder="The part worth writing down. What was hard, what the tradeoff was."></textarea>
+    </label>
+
+    <fieldset class="visibility-field">
+      <legend>Visibility</legend>
+      <label class="radio">
+        <input type="radio" name="visibility" value="private" checked />
+        <span><strong>private</strong> — never rendered, never in the corpus. The default.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="visibility" value="unlisted" />
+        <span><strong>unlisted</strong> — rendered if linked directly, never in the chat corpus.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="visibility" value="public" />
+        <span><strong>public</strong> — on the site, and answerable by the chat.</span>
+      </label>
+    </fieldset>
+
+    <div class="actions">
+      <button type="submit" id="commit">commit moment</button>
+      <span id="status" class="status"></span>
+    </div>
+  </form>
+</Base>
+
+<style>
+  .capture {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-top: 2rem;
+  }
+  .capture label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .capture label > span:first-child {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--fg-dim);
+  }
+  .capture input,
+  .capture select,
+  .capture textarea {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    padding: 0.5rem 0.65rem;
+    color: var(--fg);
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 100%;
+  }
+  .capture textarea {
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .capture input:focus,
+  .capture select:focus,
+  .capture textarea:focus {
+    outline: none;
+    border-color: var(--accent-dim);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+  }
+  @media (max-width: 34rem) {
+    .row {
+      grid-template-columns: 1fr;
+    }
+  }
+  .hint {
+    font-size: 0.75rem;
+    color: var(--fg-dim);
+    margin: 0;
+  }
+  fieldset {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1rem 1rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  legend {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--fg-dim);
+    padding: 0 0.35rem;
+  }
+  /* Metric rows are built in JS, so they never receive Astro's scoping
+     attribute and scoped selectors miss them entirely - the inputs rendered
+     unstyled. :global is required here, not a shortcut. */
+  :global(.metric-row) {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  :global(.metric-row input) {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    padding: 0.5rem 0.65rem;
+    color: var(--fg);
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 100%;
+  }
+  :global(.metric-row input:focus) {
+    outline: none;
+    border-color: var(--accent-dim);
+  }
+  :global(.metric-row .ghost) {
+    padding: 0.4rem 0.6rem;
+    line-height: 1;
+    align-self: stretch;
+  }
+  .ghost,
+  :global(.ghost) {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--fg-dim);
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    align-self: flex-start;
+  }
+  .ghost:hover {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+  }
+  .radio {
+    flex-direction: row !important;
+    align-items: baseline;
+    gap: 0.5rem !important;
+    font-size: 0.85rem;
+    color: var(--fg-dim);
+  }
+  .radio input {
+    width: auto;
+  }
+  .radio strong {
+    font-family: var(--font-mono);
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  #commit {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    padding: 0.55rem 1.2rem;
+    color: var(--bg);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #commit:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .status {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--fg-dim);
+  }
+  .status.err {
+    color: #e5534b;
+  }
+  .status.ok {
+    color: var(--accent);
+  }
+</style>
+
+<script>
+  const form = document.getElementById('capture-form') as HTMLFormElement;
+  const rows = document.getElementById('metric-rows') as HTMLDivElement;
+  const addMetric = document.getElementById('add-metric') as HTMLButtonElement;
+  const commit = document.getElementById('commit') as HTMLButtonElement;
+  const status = document.getElementById('status') as HTMLSpanElement;
+  const kindSelect = form.querySelector('[name=kind]') as HTMLSelectElement;
+  const kindHint = document.getElementById('kind-hint') as HTMLParagraphElement;
+
+  const HINTS: Record<string, string> = {
+    built: 'Shipped a system end to end.',
+    solved: 'Closed a gap, cleared a dead end.',
+    scaled: 'Took it to real production volume.',
+    operated: 'On-call, incident, aftermath.',
+    learned: 'Picked up along the way.',
+  };
+  kindSelect.addEventListener('change', () => {
+    kindHint.textContent = HINTS[kindSelect.value] ?? '';
+  });
+
+  function metricRow() {
+    const row = document.createElement('div');
+    row.className = 'metric-row';
+
+    const label = document.createElement('input');
+    label.placeholder = 'Ingest rate';
+    label.className = 'm-label';
+    label.maxLength = 60;
+
+    const value = document.createElement('input');
+    value.placeholder = '20K+ ticks/sec';
+    value.className = 'm-value';
+    value.maxLength = 60;
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'ghost';
+    remove.textContent = '×';
+    remove.addEventListener('click', () => row.remove());
+
+    row.append(label, value, remove);
+    rows.appendChild(row);
+  }
+  addMetric.addEventListener('click', metricRow);
+  metricRow();
+
+  function setStatus(text: string, kind: '' | 'ok' | 'err' = '') {
+    status.textContent = text;
+    status.className = `status ${kind}`.trim();
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+
+    const metrics = [...rows.querySelectorAll('.metric-row')]
+      .map((r) => ({
+        label: (r.querySelector('.m-label') as HTMLInputElement).value.trim(),
+        value: (r.querySelector('.m-value') as HTMLInputElement).value.trim(),
+      }))
+      .filter((m) => m.label && m.value);
+
+    const payload = {
+      title: fd.get('title'),
+      kind: fd.get('kind'),
+      date: fd.get('date'),
+      org: fd.get('org') || undefined,
+      summary: fd.get('summary'),
+      body: fd.get('body') || '',
+      project: fd.get('project') || undefined,
+      visibility: fd.get('visibility'),
+      stack: String(fd.get('stack') ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+      metrics,
+    };
+
+    commit.disabled = true;
+    setStatus('committing…');
+
+    try {
+      const res = await fetch('/api/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const detail = Array.isArray(data.detail) ? ` (${data.detail.join(', ')})` : '';
+        setStatus(`${data.error ?? 'failed'}${detail}`, 'err');
+        return;
+      }
+
+      setStatus(`${data.updated ? 'updated' : 'committed'} ${data.path} as ${data.visibility}`, 'ok');
+      form.reset();
+      rows.replaceChildren();
+      metricRow();
+    } catch {
+      setStatus('could not reach the capture endpoint', 'err');
+    } finally {
+      commit.disabled = false;
+    }
+  });
+</script>

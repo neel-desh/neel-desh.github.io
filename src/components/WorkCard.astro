@@ -1,0 +1,45 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+/**
+ * A case study, shown as a card carrying the evidence behind it.
+ *
+ * Metrics are not written on the card - they are read from the moments whose
+ * `project` points here, so a card cannot claim a number the record does not
+ * back.
+ *
+ * Evidence is ordered **oldest first**. Newest-first put the follow-on work at
+ * the top, so the market-data card led with the TimescaleDB migration's CPU
+ * number instead of the engine's own 20K+ ticks/sec. The founding work is what
+ * the card is about.
+ *
+ * Kind pills are deliberately absent here. Kind is the organising principle on
+ * /work, where it is a heading; on a card it is a third pill competing with the
+ * two that carry actual information.
+ */
+interface Props {
+  entry: CollectionEntry<'case-studies'>;
+  evidence?: CollectionEntry<'moments'>[];
+  maxMetrics?: number;
+  maxStack?: number;
+}
+
+const { entry, evidence = [], maxMetrics = 2, maxStack = 3 } = Astro.props;
+const { title, summary, stack } = entry.data;
+
+const metrics = [...evidence]
+  .sort((a, b) => a.data.date.getTime() - b.data.date.getTime())
+  .flatMap((m) => m.data.metrics)
+  .slice(0, maxMetrics);
+---
+
+<a class="card" href={`/case-studies/${entry.id}`}>
+  <h3>{title}</h3>
+  <p>{summary}</p>
+  <div class="pill-row">
+    {metrics.map((m) => (
+      <span class="pill-metric">{m.value}<span class="metric-label">{m.label}</span></span>
+    ))}
+    {stack.slice(0, maxStack).map((s) => <span class="tag">{s}</span>)}
+  </div>
+</a>

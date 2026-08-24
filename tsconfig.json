@@ -1,5 +1,6 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "comment": "functions/ runs on the Workers runtime, not in a browser. Its globals conflict with the DOM lib, so it carries its own tsconfig.",
+  "exclude": ["dist", "functions"]
 }

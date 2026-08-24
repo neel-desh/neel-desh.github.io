@@ -4,17 +4,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build && npm run check:visibility",
+    "dev": "astro build --silent && concurrently -k -n watch,serve -c gray,green \"chokidar 'src/**/*' 'public/**/*' astro.config.mjs -c 'astro build --silent'\" \"wrangler pages dev dist --port 4321 --live-reload --show-interactive-dev-session=false\"",
+    "dev:site": "astro dev",
+    "build": "astro build && npm run check:visibility && npm run check:pii",
     "check:visibility": "node scripts/check-visibility.mjs",
+    "check:pii": "node scripts/check-pii.mjs --self-test && node scripts/check-pii.mjs",
     "preview": "astro preview",
     "check": "astro check"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
     "astro": "^5.2.4"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "typescript": "^5.7.3"
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^9.2.4",
+    "typescript": "^5.7.3",
+    "wait-on": "^9.1.0",
+    "wrangler": "^4.86.0"
   }
 }

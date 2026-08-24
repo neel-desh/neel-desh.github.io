@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Authoring surface. Behind Cloudflare Access anyway, but there is no reason
+# for it to appear in an index.
+Disallow: /capture
+
+Sitemap: https://neeldeshmukh.com/sitemap-index.xml

@@ -1,0 +1,20 @@
+name = "neeldeshmukh"
+compatibility_date = "2026-05-01"
+pages_build_output_dir = "dist"
+
+# Secrets are NOT set here. Set them in the Pages dashboard, or with:
+#   npx wrangler pages secret put GEMINI_API_KEY
+#   npx wrangler pages secret put GITHUB_TOKEN
+#   npx wrangler pages secret put ACCESS_TEAM_DOMAIN
+#   npx wrangler pages secret put ACCESS_AUD
+# Anything written into this file is committed, so nothing secret belongs in it.
+
+# Rate limit on the chat endpoint, keyed by client IP.
+# The binding is optional in functions/api/chat.ts - if it is missing the
+# endpoint still works, it just stops rate limiting. Fail soft here is right:
+# a broken binding should not take the whole chat down.
+[[unsafe.bindings]]
+name = "CHAT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 15, period = 60 }

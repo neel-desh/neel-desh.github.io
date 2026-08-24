@@ -1,22 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getListedCaseStudies, getListedMoments } from '../lib/visibility';
+import Icon from '../components/Icon.astro';
 
-const caseStudies = (await getListedCaseStudies()).slice(0, 3);
-const moments = await getListedMoments();
-
-// Headline numbers, pulled from the moment store rather than hand-written, so
-// they cannot drift from the evidence behind them.
-const HEADLINE_METRICS = [
-  'market-data-engine',
-  'candles-api',
-  'search-engine',
-  'timescale-migration',
-];
-const metrics = HEADLINE_METRICS.flatMap((id) => {
-  const m = moments.find((x) => x.id === id);
-  return m?.data.metrics.slice(0, 1).map((x) => ({ ...x, id })) ?? [];
-});
+/**
+ * The homepage is deliberately almost empty.
+ *
+ * The chat dock is the front door. A "Selected work" list here competed with
+ * it - three cards restating what /work already holds, sitting between the
+ * reader and the one thing this site does that a static profile cannot. The
+ * record lives at /work, one click away and linked from every answer.
+ */
 ---
 
 <Base title="Home">
@@ -28,59 +21,35 @@ const metrics = HEADLINE_METRICS.flatMap((id) => {
     <a href="https://github.com/punchhq">Punch</a>.
   </p>
 
-  {metrics.length > 0 && (
-    <dl class="metrics">
-      {metrics.map((m) => (
-        <div>
-          <dt>{m.value}</dt>
-          <dd>{m.label}</dd>
-        </div>
-      ))}
-    </dl>
-  )}
-
-  <p>
-    <a href="/case-studies">work</a> ·
-    <a href="/about">about</a> ·
-    <a href="https://github.com/neel-desh">github</a> ·
-    <a href="https://www.linkedin.com/in/neeldeshmukh/">linkedin</a>
+  <p class="prompt-hint">
+    Ask the box below about any of it, or read
+    <a href="/case-studies">the record</a>.
   </p>
 
-  {caseStudies.length > 0 && (
-    <section>
-      <h2>Selected work</h2>
-      {caseStudies.map((cs) => (
-        <a class="card" href={`/case-studies/${cs.id}`}>
-          <h3>{cs.data.title}</h3>
-          <p>{cs.data.summary}</p>
-        </a>
-      ))}
-    </section>
-  )}
+  {/* work/about are in the header already - only the profiles, which are not. */}
+  <nav class="links" aria-label="Profiles">
+    <a href="https://github.com/neel-desh" aria-label="GitHub"><Icon name="github" /></a>
+    <a href="https://www.linkedin.com/in/neeldeshmukh/" aria-label="LinkedIn"><Icon name="linkedin" /></a>
+  </nav>
 </Base>
 
 <style>
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    gap: 1rem 1.5rem;
-    margin: 2rem 0;
-    padding: 1.25rem 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .metrics div {
-    margin: 0;
-  }
-  .metrics dt {
-    font-family: var(--font-mono);
-    font-size: 1.05rem;
-    color: var(--accent);
-    font-weight: 600;
-  }
-  .metrics dd {
-    margin: 0.15rem 0 0;
-    font-size: 0.8rem;
+  .prompt-hint {
     color: var(--fg-dim);
+    font-size: 0.95rem;
+    margin: 1.5rem 0 0;
+  }
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin: 1.5rem 0 0;
+  }
+  .links a {
+    display: inline-flex;
+    color: var(--fg-dim);
+  }
+  .links a:hover {
+    color: var(--accent);
   }
 </style>

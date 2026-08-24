@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import TerminalIntro from '../components/TerminalIntro.astro';
+import Chat from '../components/Chat.astro';
+import Icon from '../components/Icon.astro';
 
 interface Props {
   title: string;
@@ -9,6 +11,11 @@ interface Props {
 
 const { title, description = 'Neel Deshmukh — backend & distributed systems engineer.' } = Astro.props;
 const current = Astro.url.pathname;
+
+// The chat dock is fixed to the viewport, so it belongs on every page rather
+// than one section of the homepage. Capture is the exception: it is an
+// authoring surface, and a reader-facing chat has no business on it.
+const showChat = !current.startsWith('/capture');
 ---
 
 <!doctype html>
@@ -19,6 +26,7 @@ const current = Astro.url.pathname;
     <title>{title} · Neel Deshmukh</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <slot name="head" />
   </head>
   <body>
     <TerminalIntro />
@@ -36,9 +44,12 @@ const current = Astro.url.pathname;
       </main>
       <footer class="site-footer">
         <span>&copy; {new Date().getFullYear()} Neel Deshmukh</span>
-        <span> · <a href="https://github.com/neel-desh">github</a></span>
-        <span> · <a href="https://www.linkedin.com/in/neeldeshmukh/">linkedin</a></span>
+        <span class="footer-icons">
+          <a href="https://github.com/neel-desh" aria-label="GitHub"><Icon name="github" size={15} /></a>
+          <a href="https://www.linkedin.com/in/neeldeshmukh/" aria-label="LinkedIn"><Icon name="linkedin" size={15} /></a>
+        </span>
       </footer>
     </div>
+    {showChat && <Chat />}
   </body>
 </html>

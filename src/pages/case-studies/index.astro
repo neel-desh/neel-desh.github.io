@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import WorkCard from '../../components/WorkCard.astro';
 import { getListedCaseStudies, getListedMoments } from '../../lib/visibility';
 
 const caseStudies = await getListedCaseStudies();
@@ -18,25 +19,31 @@ const rollup = KINDS.map((k) => ({
   ...k,
   items: moments.filter((m) => m.data.kind === k.key),
 })).filter((k) => k.items.length > 0);
+
+const titleOf = new Map(caseStudies.map((cs) => [cs.id, cs.data.title]));
 ---
 
 <Base title="Work" description="Case studies and a record of what shipped - problems, architecture, outcomes.">
   <h1>Work</h1>
   <p class="lead">
-    Deep-dives on systems I've built: the problem, the architecture, the
-    tradeoffs, the outcome.
+    Two views of the same store. The deep dives below are written up in full;
+    the record underneath is everything, indexed by what it counts as.
   </p>
 
+  <h2>Deep dives</h2>
   {caseStudies.map((cs) => (
-    <a class="card" href={`/case-studies/${cs.id}`}>
-      <h3>{cs.data.title}</h3>
-      <p>{cs.data.summary}</p>
-      <p class="card-meta">{cs.data.stack.map((s) => <span class="tag">{s}</span>)}</p>
-    </a>
+    <WorkCard
+      entry={cs}
+      evidence={moments.filter((m) => m.data.project === cs.id)}
+      maxMetrics={3}
+    />
   ))}
 
-  <h2>Record</h2>
-  <p>Everything above is assembled from these.</p>
+  <h2>Full record</h2>
+  <p>
+    Every entry is one dated, evidenced thing. The write-ups above are assembled
+    from these, never maintained separately.
+  </p>
 
   {rollup.map((group) => (
     <section class="rollup">
@@ -47,16 +54,23 @@ const rollup = KINDS.map((k) => ({
       <p class="rollup-blurb">{group.blurb}</p>
       <ul class="moment-list">
         {group.items.map((m) => (
-          <li>
-            {m.data.project ? (
-              <a href={`/case-studies/${m.data.project}`}>{m.data.title}</a>
-            ) : (
-              <span>{m.data.title}</span>
-            )}
+          <li id={m.id}>
+            <div class="moment-head">
+              {m.data.project ? (
+                <a href={`/case-studies/${m.data.project}`}>{m.data.title}</a>
+              ) : (
+                <span>{m.data.title}</span>
+              )}
+              {m.data.project && titleOf.has(m.data.project) && (
+                <span class="pill-kind">case study</span>
+              )}
+            </div>
             {m.data.metrics.length > 0 && (
-              <span class="moment-metric">
-                {m.data.metrics.map((x) => x.value).join(' · ')}
-              </span>
+              <div class="pill-row">
+                {m.data.metrics.map((x) => (
+                  <span class="pill-metric">{x.value}<span class="metric-label">{x.label}</span></span>
+                ))}
+              </div>
             )}
           </li>
         ))}
@@ -95,15 +109,25 @@ const rollup = KINDS.map((k) => ({
     border-left: 1px solid var(--border);
   }
   .moment-list li {
-    padding: 0.35rem 0 0.35rem 1rem;
+    padding: 0.5rem 0 0.5rem 1rem;
+    /* Arriving from a chat citation: clear the header, and mark which entry
+       was cited so the landing is not a guess. */
+    scroll-margin-top: 5rem;
+    border-left: 2px solid transparent;
+    margin-left: -1px;
+    transition: border-color 0.3s ease, background 0.3s ease;
   }
-  .moment-metric {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--accent-dim);
+  .moment-list li:target {
+    border-left-color: var(--accent);
+    background: var(--bg-raised);
   }
-  .card-meta {
-    margin-top: 0.6rem;
+  .moment-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .moment-list .pill-row {
+    margin-top: 0.35rem;
   }
 </style>

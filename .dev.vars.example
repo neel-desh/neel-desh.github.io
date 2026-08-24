@@ -1,0 +1,19 @@
+# Copy to `.dev.vars` and fill in. `.dev.vars` is gitignored.
+# `npx wrangler pages dev dist` loads it automatically.
+#
+# Production values are NOT set here. Use the Pages dashboard, or:
+#   npx wrangler pages secret put GEMINI_API_KEY
+
+# Chat generation. https://aistudio.google.com/apikey
+GEMINI_API_KEY=
+
+# Capture endpoint. Only needed if you are working on /capture locally.
+# Fine-grained PAT, Contents: write, scoped to this repository only.
+GITHUB_TOKEN=
+GITHUB_REPO=neel-desh/neel-desh.github.io
+GITHUB_BRANCH=main
+
+# Cloudflare Access, from the Access application settings.
+# ACCESS_TEAM_DOMAIN is the <team> in <team>.cloudflareaccess.com
+ACCESS_TEAM_DOMAIN=
+ACCESS_AUD=

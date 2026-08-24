@@ -33,6 +33,11 @@ html {
 
 body {
   margin: 0;
+  /* Empty space after the footer equal to the dock's height. The fixed dock
+     always covers the bottom band of the viewport, so this is what guarantees
+     the footer can be scrolled clear of it. Pairs with .wrap's min-height,
+     which handles the opposite case of content shorter than the viewport. */
+  padding-bottom: var(--dock-h, 0px);
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
@@ -41,10 +46,27 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Sticky footer, sized around the chat dock.
+ *
+ * The dock is position:fixed, so on a page shorter than the viewport it floats
+ * over whatever happens to be at the bottom - which was the footer. Padding
+ * alone cannot fix that: it adds space *after* the footer without moving the
+ * footer up. So the wrap claims the viewport minus the dock, and main grows to
+ * fill it, which parks the footer just above the dock at any content length.
+ *
+ * --dock-h is set at runtime by Chat.astro, and defaults to 0 so pages without
+ * a dock (and no-JS) lay out normally. */
 .wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--dock-h, 0px));
   max-width: var(--max-w);
   margin: 0 auto;
-  padding: 3rem 1.5rem 6rem;
+  padding: 3rem 1.5rem 1.5rem;
+}
+
+.wrap > main {
+  flex: 1;
 }
 
 a {
@@ -106,6 +128,61 @@ header.site-header {
   margin: 0.15rem 0.3rem 0.15rem 0;
 }
 
+/* Pills, three tiers, loudest first.
+ *
+ *   .pill-metric  evidence you could check      accent text, accent border
+ *   .pill-kind    how the work counts           full-strength text, round
+ *   .tag          stack / technology            dim text, square — quietest
+ *
+ * Metric is loudest on purpose: a number someone can go verify outranks a
+ * category label, which outranks a language name. Kind and stack differ by
+ * shape as well as weight so they stay distinguishable on any background.
+ */
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.7rem 0 0;
+}
+
+.pill-row .tag {
+  margin: 0;
+}
+
+/* The value carries the weight, the label makes it mean something. A bare
+ * "70%+" says nothing on its own, and a title attribute is hover-only, so the
+ * label is rendered rather than hidden. */
+.pill-metric {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  white-space: nowrap;
+}
+
+.pill-metric .metric-label {
+  color: var(--fg-dim);
+  font-size: 0.68rem;
+}
+
+.pill-kind {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
 .card {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -131,10 +208,29 @@ header.site-header {
 }
 
 footer.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   margin-top: 4rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--fg-dim);
+}
+
+.footer-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer-icons a {
+  display: inline-flex;
+  color: var(--fg-dim);
+}
+
+.footer-icons a:hover {
+  color: var(--accent);
 }
