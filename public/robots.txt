@@ -1,3 +1,7 @@
+# Search and AI crawlers are welcome, including GPTBot, ClaudeBot,
+# PerplexityBot, Google-Extended and Applebot-Extended. Being quotable by
+# answer engines is the point of the site, so nothing is blocked except the
+# authoring surface.
 User-agent: *
 Allow: /
 
@@ -5,4 +9,4 @@ Allow: /
 # for it to appear in an index.
 Disallow: /capture
 
-Sitemap: https://neeldeshmukh.com/sitemap-index.xml
+Sitemap: https://neeldeshmukh.com/sitemap.xml

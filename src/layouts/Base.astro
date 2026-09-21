@@ -1,21 +1,43 @@
 ---
 import '../styles/global.css';
 import TerminalIntro from '../components/TerminalIntro.astro';
+import RolesBanner from '../components/RolesBanner.astro';
 import Chat from '../components/Chat.astro';
 import Icon from '../components/Icon.astro';
 
 interface Props {
   title: string;
   description?: string;
+  /** Open Graph type. Case studies pass "article". */
+  ogType?: 'website' | 'article';
+  /** Structured data, one schema.org object per entry. */
+  jsonLd?: Record<string, unknown>[];
 }
 
-const { title, description = 'Neel Deshmukh — backend & distributed systems engineer.' } = Astro.props;
+const {
+  title,
+  description = 'Neel Deshmukh (neeldeshmukh) is a backend engineer with 5+ years building low-latency, fault-tolerant systems in Go and Elixir, open to Gen AI and senior backend roles.',
+  ogType = 'website',
+  jsonLd = [],
+} = Astro.props;
 const current = Astro.url.pathname;
 
 // The chat dock is fixed to the viewport, so it belongs on every page rather
-// than one section of the homepage. Capture is the exception: it is an
-// authoring surface, and a reader-facing chat has no business on it.
-const showChat = !current.startsWith('/capture');
+// than one section of the homepage. Capture is an authoring surface, and a
+// reader-facing chat has no business on it. The homepage is left bare on
+// purpose: just the intro and profile links.
+const isCapture = current.startsWith('/capture');
+const showChat = current !== '/' && !isCapture;
+
+// Every page carries the name once, so a title that already has it (the
+// homepage) is used as written rather than getting it appended twice.
+const fullTitle = title.includes('Neel Deshmukh') ? title : `${title} · Neel Deshmukh`;
+
+// Canonical always ends in a slash, matching what the sitemap emits. Two
+// spellings of one URL split the ranking signal between them.
+const path = current.endsWith('/') ? current : `${current}/`;
+const canonical = new URL(path, Astro.site).href;
+const ogImage = new URL('/og.png', Astro.site).href;
 ---
 
 <!doctype html>
@@ -23,9 +45,31 @@ const showChat = !current.startsWith('/capture');
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · Neel Deshmukh</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {isCapture && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="author" content="Neel Deshmukh" />
+    <meta name="theme-color" content="#0b0d0f" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="me" href="https://github.com/neel-desh" />
+    <link rel="me" href="https://www.linkedin.com/in/neeldeshmukh/" />
+
+    <meta property="og:site_name" content="Neel Deshmukh" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Neel Deshmukh, backend engineer" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {jsonLd.map((data) => <script is:inline type="application/ld+json" set:html={JSON.stringify(data)} />)}
     <slot name="head" />
   </head>
   <body>
@@ -35,10 +79,11 @@ const showChat = !current.startsWith('/capture');
         <a class="brand" href="/">neel deshmukh</a>
         <nav class="site-nav">
           <a href="/" aria-current={current === '/' ? 'page' : undefined}>home</a>
-          <a href="/case-studies" aria-current={current.startsWith('/case-studies') ? 'page' : undefined}>work</a>
+          <a href="/experience" aria-current={current.startsWith('/experience') ? 'page' : undefined}>experience</a>
           <a href="/about" aria-current={current === '/about' ? 'page' : undefined}>about</a>
         </nav>
       </header>
+      {!isCapture && <RolesBanner />}
       <main>
         <slot />
       </main>

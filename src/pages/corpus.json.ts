@@ -59,12 +59,10 @@ export const GET: APIRoute = async () => {
       id: `moment:${m.id}`,
       type: 'moment',
       title: m.data.title,
-      // Every moment resolves somewhere: its case study if it has one, else its
-      // own anchor in the record. A citation that cannot be clicked is not a
-      // citation, it is just the answer repeated in a box.
-      url: m.data.project
-        ? `/case-studies/${m.data.project}`
-        : `/case-studies#${m.id}`,
+      // There are no per-project pages. /experience is where these claims
+      // live, and a citation that cannot be clicked is just the answer
+      // repeated in a box.
+      url: '/experience/',
       date: m.data.date.toISOString().slice(0, 10),
       stack: m.data.stack,
       kind: m.data.kind,
@@ -87,7 +85,7 @@ export const GET: APIRoute = async () => {
       id: `case-study:${cs.id}`,
       type: 'case-study',
       title: cs.data.title,
-      url: `/case-studies/${cs.id}`,
+      url: '/experience/',
       date: cs.data.date.toISOString().slice(0, 10),
       stack: cs.data.stack,
       text: [

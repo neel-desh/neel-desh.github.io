@@ -42,7 +42,9 @@ const STARTERS = [
 
     <div class="chat-starters" id="chat-starters">
       <span class="starters-note">answers only from the work here, with sources</span>
-      {STARTERS.map((s) => <button type="button" class="starter" data-q={s}>{s}</button>)}
+      <div class="starter-row">
+        {STARTERS.map((s) => <button type="button" class="starter" data-q={s}>{s}</button>)}
+      </div>
     </div>
 
     <form class="chat-form" id="chat-form">
@@ -54,7 +56,7 @@ const STARTERS = [
         type="text"
         autocomplete="off"
         maxlength="500"
-        placeholder="ask about a system, a tradeoff, an outcome…"
+        placeholder="ask about a system or tradeoff…"
       />
       <button type="submit" id="chat-send" aria-label="Ask">ask</button>
     </form>
@@ -208,6 +210,35 @@ const STARTERS = [
     color: var(--fg-dim);
     opacity: 0.8;
     margin-bottom: 0.1rem;
+  }
+  .starter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    flex-basis: 100%;
+  }
+  /* Phones: four wrapped pills ate a quarter of the screen. One scrollable row
+     keeps every starter reachable at the cost of a single line. */
+  @media (max-width: 600px) {
+    .chat-dock {
+      bottom: 0.75rem;
+    }
+    .starter-row {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .starter-row::-webkit-scrollbar {
+      display: none;
+    }
+    .starter {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .chat-form input {
+      font-size: 16px; /* under 16px iOS Safari zooms the page on focus */
+    }
   }
   .starter {
     font-family: var(--font-mono);

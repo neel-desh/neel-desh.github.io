@@ -8,12 +8,17 @@ redesign: the decisions, why they were made, and what is still open.
 
 ## Current state
 
-Branch `redesign` (off `main`). Two commits so far:
+Branch `redesign` (off `main`), four commits plus uncommitted work: Astro
+rebuild, moment store, CLAUDE.md, then RAG chat + capture + PII gate. The
+uncommitted work is the homepage/SEO pass described under "SEO and GEO".
 
-1. **Rebuild on Astro, replacing Hugo** — static Astro/TypeScript site, new
-   design, terminal-boot intro, Hugo config/theme/`public/` output removed.
-2. **Moment store with build-time visibility enforcement** — the data layer
-   described below, seeded with real work.
+**The `/work` and `/case-studies` pages were removed.** The site is now home
+experience, about. `/resume` is a Cloudflare redirect rule (dashboard, not in
+this repo) to the PDF, so the web resume lives at `/experience`: a page at
+`/resume` would be shadowed by the rule. It keeps Punch, past tense. The `moments/` and `case-studies/` content is kept because
+it is the chat's knowledge, and every citation links to `/experience/`. Old
+case-study URLs redirect to `/` via `public/_redirects`. Any mention below of `/work` rollups or
+case-study pages describes the earlier design.
 
 `main` is still the old Hugo site. Nothing has been merged yet.
 
@@ -147,7 +152,8 @@ obvious garbage; L0 is what actually makes the endpoint safe.
 ### UX (settled)
 
 - **Floating dock**, fixed to the bottom of the viewport, rounded, on every
-  page except `/capture`. It is the front door, so it does not scroll away.
+  page except `/capture` and the homepage (the homepage is deliberately bare).
+  On phones the starters collapse to one scrollable row. It is the front door, so it does not scroll away.
 - The answer stacks **above the input inside the same block**, so question,
   answer, and sources stay one object.
 - **Cites every source** as a pill linking to the case study.
@@ -197,6 +203,24 @@ only be tested against a real Access tenant.
 Visibility on capture **fails closed**: an unrecognised value becomes `private`,
 matching the schema default.
 
+## SEO and GEO
+
+- `Base.astro` owns canonical (always trailing slash, matches the sitemap),
+  Open Graph/Twitter tags, `noindex` on `/capture`, and a `jsonLd` prop.
+- Person + WebSite JSON-LD on `/`, ProfilePage on `/about` and `/experience`.
+  Person carries `alternateName: neeldeshmukh` so the one-word query resolves.
+  `jobTitle` is "Software Engineer" (resume), not "Senior": do not claim a title
+  not held.
+- `public/llms.txt`, `public/og.png`, explicit AI-crawler welcome in `robots.txt`.
+- `/experience` is the web resume, hand-written from `resume/src/resume.html`
+  (separate repo): keep the two in step. It has **no email or phone on
+  purpose**: the PDF does, and this repo is public. `/resume` is the PDF via a
+  Cloudflare redirect.
+- `/sitemap.xml` is a build-time copy of `sitemap-0.xml` (see `astro.config.mjs`).
+- The "open to roles" banner (`RolesBanner.astro`) links `/resume`.
+- Known conflict: Myracle video processing. Graph export said cost -77%; resume
+  says time -77% and cost -50%. The moment still uses the export's figure.
+
 ## Reference: mygraph.id structure
 
 Neel has a profile at `mygraph.id/<slug>`. The site is **egress-blocked from
@@ -231,7 +255,7 @@ compact record — skipping the heatmap and other product-y widgets.
 
 From the graph export. Use these rather than inventing numbers.
 
-**Punch** (2022–present), Software Engineer
+**Punch** (2022 until the company shut down, no longer employed there), Software Engineer. Do not describe him as currently at Punch anywhere on the site; past-tense moments are fine.
 
 - Market-data capture & replay engine — Go, NATS JetStream, 20K+ ticks/sec,
   microsecond-precision replay timing

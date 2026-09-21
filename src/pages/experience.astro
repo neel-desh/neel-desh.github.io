@@ -1,0 +1,104 @@
+---
+import Base from '../layouts/Base.astro';
+
+/**
+ * Web version of the resume. It lives at /experience because /resume is a
+ * Cloudflare redirect to the PDF, and a page at that path would be shadowed.
+ *
+ * Hand-written from resume.html in the resume repo, so keep the two in step.
+ * Contact is deliberately LinkedIn and GitHub only: this repo is public and
+ * the PDF carries an email address and phone number, so the PDF is not
+ * committed here.
+ */
+---
+
+<Base
+  title="Experience: Backend Engineer, 5+ Years, Go and Elixir"
+  description="Experience of Neel Deshmukh: backend engineer with 5+ years building low-latency, fault-tolerant systems in Go and Elixir at Punch, a retail trading platform. Risk controls, market data, SSO, payments."
+  jsonLd={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      mainEntity: { '@id': 'https://neeldeshmukh.com/#person' },
+    },
+  ]}
+>
+  <h1>Experience</h1>
+  <p class="lead">
+    Neel Deshmukh, backend engineer. Open to <strong>Gen AI</strong> and
+    <strong>senior backend</strong> roles. Reach me on
+    <a href="https://www.linkedin.com/in/neeldeshmukh/">LinkedIn</a> or
+    <a href="https://github.com/neel-desh">GitHub</a>, or take the
+    <a href="/resume">resume as a PDF</a>.
+  </p>
+
+  <h2>Summary</h2>
+  <p>
+    Backend engineer with 5+ years building low-latency, fault-tolerant systems
+    for a retail trading platform in Go and Elixir, spanning automated risk
+    controls, real-time market-data delivery, and internal platform tooling,
+    taking each from design to production. Solving product problems, talking to
+    customers, and mentoring teams on AI adoption.
+  </p>
+
+  <h2>Experience</h2>
+
+  <section class="job">
+    <h3>Software Engineer, Punch</h3>
+    <p class="meta mono">Sep 2022 - 2026 · Mumbai, India · Remote · Punch shut down</p>
+    <ul>
+      <li>Built <strong>Flash</strong>, an in house OMS, integrating protection orders and other order types against the <strong>Kambala</strong> baseline OMS; designed a <strong>price matching engine</strong> that automatically places orders the instant the price band is crossed.</li>
+      <li>Owned a <strong>stock-screener &amp; technical-indicators service</strong> (<strong>60-70K requests/day</strong>); led <strong>UPI &amp; net-banking</strong> collection (<strong>~6-7K txns/day, ₹3-4M volume</strong>) at <strong>99.99% success</strong>; built shared internal libraries (<strong>encrypted-secrets client</strong>, <strong>Redis integration</strong>, <strong>web-security-policy/CSP</strong>) used across <strong>15+ services</strong>.</li>
+      <li>Replaced a third-party instrument-search API with a <strong>Go in-memory search service</strong> over <strong>153K+ trading instruments</strong>, cutting latency <strong>150-250ms to ~90ms p99</strong> at <strong>~9K RPS</strong>.</li>
+      <li>Resolved a <strong>replication-lag incident</strong> that ballooned to <strong>10-15GB</strong> on the TimescaleDB candle-generation service by halting the runaway node and shipping an on-the-fly patch, with <strong>zero data loss</strong> and no backfill needed.</li>
+      <li>Built a <strong>candles API</strong> serving <strong>4-5M requests/day</strong> with multi-layer Redis Sentinel caching (&gt;99.9% hit), cutting latency <strong>~180ms to 35-50ms</strong> (8K RPS).</li>
+      <li>Designed <strong>Aegis</strong>, an in-house SSO library adopted across <strong>8 microservices</strong>, replacing fragmented per-service auth with centralized Google-OAuth sign-in and near-instant session revocation, later extended to gate VPN access.</li>
+      <li>Built a <strong>kill-switch risk-control system</strong> in Elixir/OTP that atomically cancels all pending orders and squares off intraday positions across <strong>Equity &amp; F&amp;O</strong> on trigger, with a fail-open guard so cache outages never block live trading.</li>
+      <li>Built the <strong>account-opening flow</strong> across <strong>5-6 vendors</strong>, cutting onboarding to <strong>2-5 min</strong> and NSE activation from 2-4 days to <strong>~1-24h</strong>, now processing <strong>500+ accounts/day</strong>.</li>
+      <li>Built a <strong>Go market-data capture &amp; replay engine</strong> ingesting <strong>20K+ ticks/sec</strong> over NATS JetStream, reconstructing live-market timing to <strong>microsecond precision</strong>.</li>
+      <li>Maintained a <strong>Rails market-data service</strong> (<strong>143-worker Sidekiq</strong>, <strong>1-1.5M jobs/day</strong>); migrated candle generation to <strong>TimescaleDB continuous aggregates</strong>, cutting CPU <strong>70%+ to ~20%</strong>, and ran a <strong>corporate-actions pipeline</strong> across <strong>26 years of historical OHLC data</strong> with zero downtime.</li>
+    </ul>
+  </section>
+
+  <section class="job">
+    <h3>Early Engineer, SDE2, Myracle.io</h3>
+    <p class="meta mono">May 2021 - Aug 2022 · Berlin, Germany · Remote</p>
+    <ul>
+      <li>Developed adaptive question-paper generation via a progressive model &amp; difficulty calibration, saving <strong>80%</strong> of faculty time.</li>
+      <li>Optimized a scalable, event-driven system processing up to <strong>8,000 exam videos/day</strong>, reducing processing time by <strong>77%</strong> and cost by <strong>50%</strong>.</li>
+      <li>Refactored code using Hexagonal Architecture and standardized Test-Driven Development, improving quality and maintainability.</li>
+    </ul>
+  </section>
+
+  <h2>Technical skills</h2>
+  <p><strong>Languages &amp; backend:</strong> Elixir, Go, Ruby, Phoenix, Ecto, OTP, NATS, REST APIs, WebSockets</p>
+  <p><strong>Data &amp; infra:</strong> Redis, PostgreSQL, TimescaleDB, Docker, Prometheus, Git, Linux</p>
+  <p><strong>Architecture &amp; AI:</strong> Distributed systems, leader election &amp; sharding, high availability and failover, low-latency market-data pipelines, fault tolerance, Claude Code (custom skills, agentic workflows), MCP, prompt engineering, LLM-assisted development</p>
+
+  <h2>Education</h2>
+  <p>
+    <strong>Jai Hind College</strong>, Mumbai. Bachelor of Software Development,
+    2018 - 2021. CGPA 8.91 / 10.
+  </p>
+</Base>
+
+<style>
+  .job {
+    margin-bottom: 1.75rem;
+  }
+  .job h3 {
+    margin: 0;
+  }
+  .meta {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+    color: var(--fg-dim);
+  }
+  .job ul {
+    margin: 0.75rem 0 0;
+    padding-left: 1.1rem;
+  }
+  .job li {
+    margin-bottom: 0.55rem;
+  }
+</style>

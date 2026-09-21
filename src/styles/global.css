@@ -35,9 +35,15 @@ body {
   margin: 0;
   /* Empty space after the footer equal to the dock's height. The fixed dock
      always covers the bottom band of the viewport, so this is what guarantees
-     the footer can be scrolled clear of it. Pairs with .wrap's min-height,
+     the footer can be scrolled clear of it. Pairs with .wrap's flex: 1,
      which handles the opposite case of content shorter than the viewport. */
   padding-bottom: var(--dock-h, 0px);
+  /* Column flex so .wrap can take whatever the banner and dock leave over,
+     instead of guessing their heights in a calc(). */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
@@ -59,7 +65,8 @@ body {
 .wrap {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--dock-h, 0px));
+  flex: 1;
+  width: 100%;
   max-width: var(--max-w);
   margin: 0 auto;
   padding: 3rem 1.5rem 1.5rem;
@@ -233,4 +240,20 @@ footer.site-footer {
 
 .footer-icons a:hover {
   color: var(--accent);
+}
+
+/* Phones: brand plus three nav items only fit on one line if everything
+   tightens a little. Wrapping the nav under the brand looked broken. */
+@media (max-width: 480px) {
+  header.site-header {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+  }
+  .brand {
+    font-size: 0.85rem;
+  }
+  nav.site-nav {
+    gap: 0.85rem;
+    font-size: 0.8rem;
+  }
 }

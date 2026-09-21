@@ -2,17 +2,33 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="About" description="How Neel Deshmukh works — tools, languages, and philosophy.">
+<Base
+  title="About Neel Deshmukh, Backend Engineer"
+  description="About Neel Deshmukh: backend engineer working in Elixir, Go and Ruby on distributed, real-time systems. Tools, languages, and how he works."
+  jsonLd={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      mainEntity: { '@id': 'https://neeldeshmukh.com/#person' },
+    },
+  ]}
+>
   <h1>About</h1>
-  <p>Hi, I'm Neel — (neovim btw)</p>
+  <p>Hi, I'm Neel (neovim btw)</p>
   <p>
-    I'm a software developer who believes in writing clean, scalable, and
-    efficient code. I specialize in building distributed, real-time,
-    low-latency systems that are robust and highly scalable.
+    I'm a backend engineer with 5+ years building low-latency, fault-tolerant
+    systems for a retail trading platform, in Go and Elixir. The work spans
+    automated risk controls, real-time market-data delivery, and internal
+    platform tooling, each taken from design to production.
+  </p>
+  <p>
+    I also solve product problems, talk to customers, and mentor teams on AI
+    adoption. I'm looking for Gen AI and senior backend roles,
+    and the <a href="/resume">resume</a> has the detail.
   </p>
   <p>
     I've worked closely with multiple teams and stakeholders to deliver
-    impactful solutions. My philosophy is simple — get it done. I focus on
+    impactful solutions. My philosophy is simple: get it done. I focus on
     identifying inefficiencies and fixing them. Over the years, I've learned
     that building fast and delivering quality are equally essential.
   </p>
@@ -21,14 +37,18 @@ import Base from '../layouts/Base.astro';
   <p><strong>Editor:</strong> Neovim</p>
   <p>
     <strong>Languages:</strong>
-    <span class="tag">Elixir</span><span class="tag">Ruby</span><span class="tag">TypeScript</span><span class="tag">JavaScript</span><span class="tag">Python</span>
+    <span class="tag">Elixir</span><span class="tag">Go</span><span class="tag">Ruby</span><span class="tag">TypeScript</span><span class="tag">JavaScript</span><span class="tag">Python</span>
   </p>
   <p>
     <strong>Frameworks &amp; libraries:</strong>
-    <span class="tag">Phoenix</span><span class="tag">Rails</span><span class="tag">Ecto</span>
+    <span class="tag">Phoenix</span><span class="tag">Rails</span><span class="tag">Ecto</span><span class="tag">OTP</span><span class="tag">NATS</span>
   </p>
   <p>
     <strong>Databases &amp; storage:</strong>
     <span class="tag">PostgreSQL</span><span class="tag">TimescaleDB</span><span class="tag">ClickHouse</span><span class="tag">Redis</span>
+  </p>
+  <p>
+    <strong>Architecture &amp; AI:</strong>
+    <span class="tag">Distributed systems</span><span class="tag">Fault tolerance</span><span class="tag">Claude Code</span><span class="tag">MCP</span><span class="tag">Prompt engineering</span>
   </p>
 </Base>

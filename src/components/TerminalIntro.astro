@@ -12,7 +12,13 @@ const lines = [
 ---
 
 <div id="boot-intro" class="boot-intro" hidden aria-hidden="true">
-  <pre class="boot-lines mono" id="boot-lines"></pre>
+  <div class="boot-box">
+    {/* Invisible copy of the finished text. It gives the box its final size up
+        front, so the block stays centred while the real text types over it
+        instead of re-centring on every character. */}
+    <pre class="boot-lines boot-ghost mono">{lines.join('\n')}</pre>
+    <pre class="boot-lines mono" id="boot-lines"></pre>
+  </div>
 </div>
 
 <style>
@@ -35,11 +41,22 @@ const lines = [
     animation: boot-fade 0.4s ease forwards;
   }
 
+  .boot-box {
+    display: grid;
+    max-width: 100%;
+  }
+
   .boot-lines {
-    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+    grid-area: 1 / 1;
+    margin: 0;
+    font-size: clamp(0.8rem, 3.4vw, 1.05rem);
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
     line-height: 1.7;
-    max-width: 32rem;
+  }
+
+  .boot-ghost {
+    visibility: hidden;
   }
 
   .boot-cursor::after {

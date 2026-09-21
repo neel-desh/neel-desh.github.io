@@ -3,30 +3,77 @@ import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 
 /**
- * The homepage is deliberately almost empty.
- *
- * The chat dock is the front door. A "Selected work" list here competed with
- * it - three cards restating what /work already holds, sitting between the
- * reader and the one thing this site does that a static profile cannot. The
- * record lives at /work, one click away and linked from every answer.
+ * The homepage is deliberately bare: who, what, and where to find the rest.
+ * No chat dock (Base.astro skips it here) and no pointer to the work record -
+ * the header nav already links work and about.
  */
+
+const url = 'https://neeldeshmukh.com';
+const person = {
+  '@type': 'Person',
+  '@id': `${url}/#person`,
+  name: 'Neel Deshmukh',
+  alternateName: ['neeldeshmukh', 'Neel Deshmukh backend engineer'],
+  url,
+  image: `${url}/og.png`,
+  jobTitle: 'Backend Engineer',
+  description:
+    'Backend engineer with 5+ years building low-latency, fault-tolerant systems for a retail trading platform in Go and Elixir: market-data pipelines, trading risk controls, SSO and payments.',
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Jai Hind College' },
+  knowsAbout: [
+    'Backend engineering',
+    'Distributed systems',
+    'Low-latency systems',
+    'Real-time systems',
+    'Fault-tolerant systems',
+    'Elixir',
+    'OTP',
+    'Go',
+    'Ruby',
+    'Phoenix',
+    'NATS JetStream',
+    'PostgreSQL',
+    'TimescaleDB',
+    'Redis',
+    'WebSockets',
+    'Order management systems',
+    'Market data',
+    'System design',
+    'Generative AI',
+    'Agentic AI',
+    'Claude Code',
+    'Model Context Protocol',
+    'Prompt engineering',
+  ],
+  sameAs: ['https://github.com/neel-desh', 'https://www.linkedin.com/in/neeldeshmukh/'],
+};
+const jsonLd = [
+  { '@context': 'https://schema.org', ...person },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${url}/#website`,
+    url,
+    name: 'Neel Deshmukh',
+    alternateName: 'neeldeshmukh.com',
+    author: { '@id': `${url}/#person` },
+    inLanguage: 'en',
+  },
+];
 ---
 
-<Base title="Home">
+<Base
+  title="Neel Deshmukh | Backend Engineer, Distributed Systems & Gen AI"
+  description="Neel Deshmukh (neeldeshmukh) is a backend engineer with 5+ years building low-latency, fault-tolerant systems in Go and Elixir for a retail trading platform. Risk controls, market data, SSO and payments. Open to Gen AI and senior backend roles."
+  jsonLd={jsonLd}
+>
   <h1>Neel Deshmukh</h1>
   <p class="lead">
-    Backend engineer, 4+ years on <strong>distributed</strong>,
-    <strong>real-time</strong>, <strong>low-latency</strong> systems —
-    market data, risk controls, and payments at
-    <a href="https://github.com/punchhq">Punch</a>.
+    Backend engineer, 5+ years on <strong>distributed</strong>,
+    <strong>real-time</strong>, <strong>low-latency</strong> systems -
+    market data, risk controls, and payments on a retail trading platform.
   </p>
 
-  <p class="prompt-hint">
-    Ask the box below about any of it, or read
-    <a href="/case-studies">the record</a>.
-  </p>
-
-  {/* work/about are in the header already - only the profiles, which are not. */}
   <nav class="links" aria-label="Profiles">
     <a href="https://github.com/neel-desh" aria-label="GitHub"><Icon name="github" /></a>
     <a href="https://www.linkedin.com/in/neeldeshmukh/" aria-label="LinkedIn"><Icon name="linkedin" /></a>
@@ -34,11 +81,6 @@ import Icon from '../components/Icon.astro';
 </Base>
 
 <style>
-  .prompt-hint {
-    color: var(--fg-dim);
-    font-size: 0.95rem;
-    margin: 1.5rem 0 0;
-  }
   .links {
     display: flex;
     align-items: center;
