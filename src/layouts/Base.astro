@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import TerminalIntro from '../components/TerminalIntro.astro';
+import ViewToggle from '../components/ViewToggle.astro';
 import RolesBanner from '../components/RolesBanner.astro';
 import Icon from '../components/Icon.astro';
 
@@ -66,6 +67,7 @@ const ogImage = new URL('/og.png', Astro.site).href;
   </head>
   <body>
     <TerminalIntro />
+    <ViewToggle />
     <div class="wrap">
       <header class="site-header">
         <a class="brand" href="/">neel deshmukh</a>

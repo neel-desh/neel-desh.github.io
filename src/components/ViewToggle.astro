@@ -1,0 +1,177 @@
+---
+// Floating human | agent switch. "agent" replaces <main> with the page's
+// markdown twin (index.md), the exact text an agent receives, so the claim
+// "this site is agent-ready" can be seen rather than taken on trust.
+//
+// Progressive enhancement: hidden until JS runs, and it changes nothing in the
+// served HTML, so crawlers and agents are unaffected.
+---
+
+<div id="view-toggle" class="view-toggle" role="group" aria-label="Page view" hidden>
+  <button type="button" data-view="human" aria-pressed="true">human</button>
+  <button type="button" data-view="agent" aria-pressed="false">agent</button>
+</div>
+
+<style is:global>
+  /* Dark in both themes on purpose: it floats over either background. */
+  .view-toggle {
+    position: fixed;
+    right: 1rem;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    z-index: 50;
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: #0b0d0f;
+    border: 1px solid #2a3037;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+  .view-toggle[hidden] {
+    display: none;
+  }
+  .view-toggle button {
+    appearance: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    background: transparent;
+    color: #9aa4ad;
+    font: inherit;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .view-toggle button:hover {
+    color: #e6e8eb;
+  }
+  .view-toggle button[aria-pressed='true'] {
+    background: #7ee787;
+    color: #0b0d0f;
+    font-weight: 600;
+  }
+  .view-toggle button:focus-visible {
+    outline: 2px solid #7ee787;
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .view-toggle button {
+      transition: none;
+    }
+  }
+  @media print {
+    .view-toggle {
+      display: none;
+    }
+  }
+
+  /* Room for the pill so it never sits on the footer icons. Only when the
+     toggle is active, so no-JS visitors keep the original spacing. */
+  html[data-view] .wrap {
+    padding-bottom: 4.5rem;
+  }
+
+  /* Agent view: <main> is swapped for the raw twin. The roles banner sits
+     outside <main> and is not in the twin, so it goes too. */
+  html[data-view='agent'] main,
+  html[data-view='agent'] aside[aria-label='Availability'] {
+    display: none;
+  }
+  .agent-view {
+    display: none;
+    flex: 1;
+    margin: 0;
+    padding: 1rem 1.1rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--fg);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-x: auto;
+  }
+  html[data-view='agent'] .agent-view {
+    display: block;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var KEY = 'nd-view';
+    var root = document.documentElement;
+    var box = document.getElementById('view-toggle');
+    if (!box) return;
+    var buttons = box.querySelectorAll('button');
+
+    // Same-origin path of the twin, taken from the page's own alternate link.
+    // The link is absolute (canonical), which would point a local preview at
+    // production, so only the pathname is used.
+    var alt = document.querySelector('link[rel="alternate"][type="text/markdown"]');
+    var path = alt ? new URL(alt.href).pathname : null;
+
+    var pre = null;
+    var loaded = false;
+
+    function ensurePre() {
+      if (pre) return pre;
+      var main = document.querySelector('main');
+      if (!main) return null;
+      pre = document.createElement('pre');
+      pre.className = 'agent-view mono';
+      pre.tabIndex = 0;
+      pre.setAttribute('aria-label', 'Markdown version of this page');
+      main.after(pre);
+      return pre;
+    }
+
+    function load() {
+      var el = ensurePre();
+      if (!el || loaded) return;
+      el.textContent = 'loading...';
+      var fail = function () {
+        el.textContent =
+          'No markdown twin found at ' + path + '.\n\n' +
+          'Twins are written by the build, not by "astro dev". Run:\n' +
+          '  npm run build && npm run preview';
+      };
+      if (!path) return fail();
+      fetch(path)
+        .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+        // A dev server answers unknown paths with HTML, so check it is really the twin.
+        .then(function (t) {
+          if (t.indexOf('---\n') !== 0) return Promise.reject();
+          el.textContent = t;
+          loaded = true;
+        })
+        .catch(fail);
+    }
+
+    function set(view) {
+      root.setAttribute('data-view', view);
+      buttons.forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === view));
+      });
+      try { sessionStorage.setItem(KEY, view); } catch (e) {}
+      if (view === 'agent') {
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
+        else load();
+      }
+    }
+
+    // Initial mode: a #agent deep link wins, then whatever was chosen earlier
+    // in this tab. Storage can throw (private mode, blocked), so it is optional.
+    var initial = 'human';
+    try { if (sessionStorage.getItem(KEY) === 'agent') initial = 'agent'; } catch (e) {}
+    if (location.hash === '#agent') initial = 'agent';
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { set(b.getAttribute('data-view')); });
+    });
+    box.hidden = false;
+    set(initial);
+  })();
+</script>

@@ -158,6 +158,12 @@ crawling.
   commas. If a new page converts badly, read `dist/<page>/index.md` and fix
   the markup or add a tested rule.
 - `Base.astro` emits `<link rel="alternate" type="text/markdown">` to the twin.
+- `ViewToggle.astro` is the floating human | agent pill. Agent mode swaps
+  `<main>` for the page's own `index.md`, fetched same-origin (only the
+  pathname of the alternate link is used, so a local preview never reaches
+  production). JS-only enhancement, remembered per tab in `sessionStorage`,
+  `#agent` deep-links to it. Under `astro dev` there are no twins, so it shows
+  a "run the build" message instead of HTML.
 - `public/robots.txt` carries `Content-Signal: search=yes, ai-input=yes,
   ai-train=no` and explicit AI-bot groups. Change `ai-train` there and nowhere
   else.
