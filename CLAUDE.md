@@ -136,6 +136,41 @@ most common written Indian format, because it required 10 consecutive digits.
 - Known conflict: Myracle video processing. Graph export said cost -77%; resume
   says time -77% and cost -50%. The moment still uses the export's figure.
 
+## Agent readiness
+
+Modeled on Cloudflare's Agent Readiness score (isitagentready.com). Spec:
+`docs/superpowers/specs/2026-09-21-agent-readiness-design.md`.
+
+**The site is static forever, blog content included.** No Worker, Function or
+server runtime, ever. That rules out the MCP server card, API catalog, OAuth
+discovery, WebMCP and commerce checks: they describe a live server and would
+be fake here. Web Bot Auth is out too, it is for bots proving identity while
+crawling.
+
+- `scripts/build-markdown.mjs` walks `dist/` for every `index.html` and writes
+  an `index.md` twin (turndown over `<main>`, converter in
+  `scripts/lib/html-to-markdown.mjs`). There is no route list, so new pages
+  and blog posts get twins automatically. It also publishes
+  `src/agent-skills/*/SKILL.md` to `/.well-known/agent-skills/` with a
+  generated index and sha256 digests.
+- The converter has two rules for this site's markup: icon-only links use
+  their `aria-label` as text, and adjacent `span.tag` chips are joined with
+  commas. If a new page converts badly, read `dist/<page>/index.md` and fix
+  the markup or add a tested rule.
+- `Base.astro` emits `<link rel="alternate" type="text/markdown">` to the twin.
+- `public/robots.txt` carries `Content-Signal: search=yes, ai-input=yes,
+  ai-train=no` and explicit AI-bot groups. Change `ai-train` there and nowhere
+  else.
+- `scripts/check-agent.mjs` gates twins, alternate links, Content-Signal, skill
+  digests and llms.txt markdown links. `--self-test` proves it can fail.
+- `check-pii.mjs` scans `.md` (it did not before, so twins were invisible to
+  it). If you add a new output extension to `dist/`, add it to `TEXT_EXT`.
+- **Edge rules are not deployed by this repo.** They are applied by hand in
+  Cloudflare and listed in `docs/cloudflare-edge-rules.md`: Accept-based
+  rewrite to `index.md`, `Link` and `Vary` headers. If
+  `curl -H 'Accept: text/markdown' https://neeldeshmukh.com/experience/`
+  returns HTML, the rules were lost or misconfigured.
+
 ## Reference: mygraph.id structure
 
 Neel has a profile at `mygraph.id/<slug>`. The site is **egress-blocked from
@@ -202,10 +237,12 @@ prompt engineering. Editor: Neovim.
 ```sh
 npm install
 npm run dev              # local dev server
-npm run build            # build + visibility check + pii check
+npm run build            # build + markdown twins + visibility + pii + agent checks
+npm test                 # node:test unit tests for the build scripts
 npm run check            # astro check (typecheck)
 npm run check:visibility # leak check alone (needs an existing dist/)
 npm run check:pii        # pii self-test + scan (needs an existing dist/)
+npm run check:agent      # agent-readiness self-test + check (needs an existing dist/)
 ```
 
 ## Deploy: GitHub Pages
