@@ -5,11 +5,12 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && npm run check:visibility && npm run check:pii",
+    "build": "astro build && node scripts/build-markdown.mjs && npm run check:visibility && npm run check:pii",
     "check:visibility": "node scripts/check-visibility.mjs",
     "check:pii": "node scripts/check-pii.mjs --self-test && node scripts/check-pii.mjs",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
@@ -17,6 +18,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
+    "turndown": "^7.2.4",
     "typescript": "^5.7.3"
   }
 }

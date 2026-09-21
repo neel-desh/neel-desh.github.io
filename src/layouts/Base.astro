@@ -40,6 +40,7 @@ const ogImage = new URL('/og.png', Astro.site).href;
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="text/markdown" href={`${canonical}index.md`} />
     <meta name="author" content="Neel Deshmukh" />
     <meta name="theme-color" content="#0b0d0f" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

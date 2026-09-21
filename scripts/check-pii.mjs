@@ -27,7 +27,7 @@ const DIST = join(ROOT, 'dist');
 const DENYLIST_FILE = join(ROOT, '.pii-denylist');
 
 /** Scanned as text. Anything else in dist/ is a binary asset. */
-const TEXT_EXT = new Set(['.html', '.json', '.js', '.css', '.txt', '.xml', '.svg']);
+const TEXT_EXT = new Set(['.html', '.json', '.js', '.css', '.txt', '.xml', '.svg', '.md']);
 
 /** One canary per pattern. If any stops firing, the pattern rotted. */
 const CANARIES = [
