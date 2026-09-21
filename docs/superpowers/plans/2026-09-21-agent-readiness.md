@@ -1016,7 +1016,7 @@ OAuth, WebMCP, Web Bot Auth, commerce (a static site has no server to describe).
 
 - [ ] **Step 2: Check the doc for banned characters**
 
-Run: `grep -n '—' docs/cloudflare-edge-rules.md docs/superpowers/plans/2026-09-21-agent-readiness.md; echo "grep exit=$?"`
+Run: `grep -nP '\x{2014}' docs/cloudflare-edge-rules.md; echo "grep exit=$?"`
 Expected: no matches, `grep exit=1`.
 
 - [ ] **Step 3: Commit**
