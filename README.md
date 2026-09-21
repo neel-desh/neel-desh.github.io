@@ -1,6 +1,7 @@
 # neeldeshmukh.com
 
 Personal site. Astro (static output), TypeScript, no client framework runtime.
+Fully static: no server functions, so it deploys to any static host.
 
 ## Develop
 
@@ -9,18 +10,27 @@ npm install
 npm run dev
 ```
 
+## Build and gates
+
+```
+npm run build    # astro build, then the visibility and PII gates
+npm run check    # typecheck
+```
+
+The build fails if non-public content or anything PII-shaped reaches `dist/`.
+
 ## Content
 
-- `src/pages/about.astro` — about page copy
-- `src/content/case-studies/*.md` — project deep-dives (frontmatter schema in `src/content/config.ts`); set `draft: true` to keep a case study out of the listing while it's in progress
+- `src/pages/index.astro`, `about.astro`, `experience.astro` - the pages
+- `src/content/moments/*.md`, `src/content/case-studies/*.md` - the evidence
+  store. Not rendered as pages; published as `/corpus.json`. Every entry has a
+  `visibility` that defaults to `private`.
 
 ## Deploy
 
-Static build (`npm run build` → `dist/`), deployed on Cloudflare Pages
-connected directly to this repo (build command `npm run build`, output
-directory `dist`) — no GitHub Actions deploy step needed. Custom domain
-(`neeldeshmukh.com`) is configured in the Cloudflare Pages dashboard.
+GitHub Pages, via `.github/workflows/ci.yaml`: every push builds and gates,
+a push to `main` also deploys. Set repo Settings > Pages > Source to
+"GitHub Actions" and the custom domain to `neeldeshmukh.com`.
 
-The AI chat feature (in progress) will be a separate Cloudflare Worker, kept
-out of this build so the site itself stays a plain static, edge-cached
-deploy.
+`/resume` is a redirect to the PDF, configured at the DNS/CDN layer, not in
+this repo. The PDF holds an email and phone number, so it is not committed.

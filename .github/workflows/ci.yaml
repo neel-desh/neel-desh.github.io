@@ -1,9 +1,19 @@
 name: CI
 
+# Every push and PR is built and gated. A push to main is also deployed to
+# GitHub Pages (repo Settings > Pages > Source must be "GitHub Actions").
 on:
   push:
     branches: [main, redesign]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -17,3 +27,21 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

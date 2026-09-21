@@ -2,7 +2,6 @@
 import '../styles/global.css';
 import TerminalIntro from '../components/TerminalIntro.astro';
 import RolesBanner from '../components/RolesBanner.astro';
-import Chat from '../components/Chat.astro';
 import Icon from '../components/Icon.astro';
 
 interface Props {
@@ -21,13 +20,6 @@ const {
   jsonLd = [],
 } = Astro.props;
 const current = Astro.url.pathname;
-
-// The chat dock is fixed to the viewport, so it belongs on every page rather
-// than one section of the homepage. Capture is an authoring surface, and a
-// reader-facing chat has no business on it. The homepage is left bare on
-// purpose: just the intro and profile links.
-const isCapture = current.startsWith('/capture');
-const showChat = current !== '/' && !isCapture;
 
 // Every page carries the name once, so a title that already has it (the
 // homepage) is used as written rather than getting it appended twice.
@@ -48,7 +40,6 @@ const ogImage = new URL('/og.png', Astro.site).href;
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {isCapture && <meta name="robots" content="noindex, nofollow" />}
     <meta name="author" content="Neel Deshmukh" />
     <meta name="theme-color" content="#0b0d0f" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -83,7 +74,7 @@ const ogImage = new URL('/og.png', Astro.site).href;
           <a href="/about" aria-current={current === '/about' ? 'page' : undefined}>about</a>
         </nav>
       </header>
-      {!isCapture && <RolesBanner />}
+      <RolesBanner />
       <main>
         <slot />
       </main>
@@ -95,6 +86,5 @@ const ogImage = new URL('/og.png', Astro.site).href;
         </span>
       </footer>
     </div>
-    {showChat && <Chat />}
   </body>
 </html>

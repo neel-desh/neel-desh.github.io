@@ -16,18 +16,14 @@ const sitemapAlias = {
   },
 };
 
-// Static output, deployed to Cloudflare Pages (edge-cached by default).
-// The chat and capture endpoints are Pages Functions in ./functions, so they
-// ship in the same deploy as the site rather than as a separate Worker.
+// Fully static output. No server runtime, so it deploys to any static host
+// (GitHub Pages via .github/workflows/ci.yaml).
 export default defineConfig({
   site: 'https://neeldeshmukh.com',
   output: 'static',
   compressHTML: true,
   integrations: [
-    sitemap({
-      // The authoring surface is not part of the public site.
-      filter: (page) => !page.includes('/capture'),
-    }),
+    sitemap(),
     sitemapAlias,
   ],
 });

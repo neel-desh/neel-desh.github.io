@@ -1,12 +1,10 @@
 /**
  * What counts as PII. The only definition of it in this repo.
  *
- * Imported by both scripts/check-pii.mjs (build gate, scans dist/) and
- * functions/api/chat.ts (runtime gate, scans the model's answer). Same
- * principle as src/lib/visibility.ts: one gate, so there is exactly one
- * thing to audit and the two ends cannot drift apart.
+ * Used by scripts/check-pii.mjs (build gate, scans dist/). Same principle as
+ * src/lib/visibility.ts: one gate, so there is exactly one thing to audit.
  *
- * Plain .mjs so the Node build script and the Worker bundle can both read it.
+ * Plain .mjs so the Node build script can import it without a compile step.
  *
  * Every pattern here has a canary in scripts/check-pii.mjs's test block.
  * A rule with no proof it can fire is not a rule.

@@ -8,17 +8,19 @@ redesign: the decisions, why they were made, and what is still open.
 
 ## Current state
 
-Branch `redesign` (off `main`), four commits plus uncommitted work: Astro
-rebuild, moment store, CLAUDE.md, then RAG chat + capture + PII gate. The
-uncommitted work is the homepage/SEO pass described under "SEO and GEO".
+Branch `redesign` (off `main`). **The site is fully static.** Pages: home,
+experience, about. No Functions, no chat, no capture form: those were built
+(commit `0ebf7e5` has all of it, including the RAG chat guardrails and the
+Access-verified capture endpoint) and then removed so the site can deploy to
+any static host. Restore from that commit if either is wanted again.
 
-**The `/work` and `/case-studies` pages were removed.** The site is now home
-experience, about. `/resume` is a Cloudflare redirect rule (dashboard, not in
-this repo) to the PDF, so the web resume lives at `/experience`: a page at
-`/resume` would be shadowed by the rule. It keeps Punch, past tense. The `moments/` and `case-studies/` content is kept because
-it is the chat's knowledge, and every citation links to `/experience/`. Old
-case-study URLs redirect to `/` via `public/_redirects`. Any mention below of `/work` rollups or
-case-study pages describes the earlier design.
+`/resume` is a redirect rule to the PDF at the DNS/CDN layer, not in this repo,
+so the web resume lives at `/experience`: a page at `/resume` would be
+shadowed. It keeps Punch, past tense (Punch shut down; he no longer works
+there).
+
+`moments/` and `case-studies/` are no longer rendered as pages. They are kept
+as the evidence store and published as `/corpus.json` for machines.
 
 `main` is still the old Hugo site. Nothing has been merged yet.
 
@@ -26,10 +28,9 @@ case-study pages describes the earlier design.
 
 | Choice | Reason |
 | --- | --- |
-| Astro, `output: 'static'` | Site must stay static and edge-cached. No server runtime in the site itself. |
+| Astro, `output: 'static'` | Site must stay static. No server runtime, so any static host works. |
 | No client framework | Nothing on the page needs one. Keeps the payload near zero. |
-| Cloudflare Pages | Build `npm run build`, output `dist`. Custom domain configured in the Pages dashboard. |
-| Chat as a separate Worker | Keeps the "few moving parts" constraint — the site stays a plain static deploy. |
+| GitHub Pages | `.github/workflows/ci.yaml` builds, gates, and deploys on push to `main`. |
 
 Scaffolding note: `npm create astro` does **not** work in the CCR sandbox —
 template downloads come from raw GitHub, which is egress-blocked. The npm
@@ -52,7 +53,7 @@ Derived from it:
   evidence behind them)
 - `/work` rollups by `kind`: built / solved / scaled / operated / learned
 - Case-study "Evidence" sections
-- `/corpus.json` — the chat's retrieval set
+- `/corpus.json` — the machine-readable corpus (public entries only)
 
 Schema lives in `src/content.config.ts`.
 
@@ -67,7 +68,7 @@ an unmarked entry fails closed and cannot ship by accident.
 two different questions:
 
 - `isRenderable` — may this be built into a page (includes `unlisted`)
-- `isInCorpus` — may this be embedded into the chat corpus (`public` only)
+- `isInCorpus` — may this be published in `/corpus.json` (`public` only)
 
 The claim the site makes is that non-public content is **absent from the
 deployed artifact**, not hidden by it. A private moment is never written into
@@ -96,79 +97,18 @@ rm dist/leak-test.html
 `src/content/moments/EXAMPLE-private-moment.md` is the permanent canary. Keep
 it private.
 
-## The RAG chat — built
+## Removed: RAG chat and capture
 
-Lives in `functions/api/chat.ts` as a Cloudflare Pages Function, in the same
-repo and same deploy as the site. **Not** a separate Worker: Pages Functions
-mean one thing to deploy and version, which serves the "few moving parts"
-constraint better than the original plan did.
-
-### There is no vector search, on purpose
-
-The earlier plan (build-time embeddings, `corpus-embedded.json`, browser-side
-cosine similarity) was **dropped**. Two reasons:
-
-1. It does not survive the switch to Gemini. Embedding the *query* needs an API
-   call with a key, so the browser cannot retrieve without either shipping the
-   key or loading ~20MB of transformers.js.
-2. At 16 chunks (~8K tokens) the whole corpus fits in one prompt. An index
-   would add an embedding model, stored vectors, and a drift problem between
-   the index and the content, in exchange for nothing at this size.
-
-So every call sends the entire public corpus. Revisit past **~100 chunks**,
-where the prompt starts costing more than an index would.
-
-The side benefit matters more than the cost saving: the whole prompt is
-auditable. There is no retrieval step that might quietly pull the wrong thing,
-and "only public content is reachable" is enforced by what the build wrote to
-disk rather than by a similarity threshold.
-
-### Model
-
-`gemini-3.5-flash-lite` (cheapest GA tier), called over the REST API with
-`x-goog-api-key`.
-
-> **`gemini-embedding-001` was shut down 2026-07-14.** If embeddings are ever
-> reintroduced, the replacement is `gemini-embedding-2`. Note the models page
-> still listed the dead model as GA in Aug 2026, so re-verify rather than
-> trusting the docs page.
-
-### Guardrails, in the order they run
-
-| Layer | What | Where |
-| --- | --- | --- |
-| L0 | Private content absent from `dist/`, so it cannot be retrieved at all | `check-visibility.mjs` |
-| L1 | Input guard: method, content-type, size, injection patterns, rate limit | `chat.ts` |
-| L2 | Structured output — model must return JSON matching a schema | `responseSchema` |
-| L3 | Citation validation — a cited id not in the corpus voids the answer | `chat.ts` |
-| L4 | Output PII scan, same patterns as the build gate | `pii-patterns.mjs` |
-
-**L0 does most of the work. L3 is the one people skip** — a fabricated citation
-is the signature of a fabricated answer, and catching it is deterministic.
-
-L1's injection list is a speed bump, not a wall. It exists to avoid paying for
-obvious garbage; L0 is what actually makes the endpoint safe.
-
-### UX (settled)
-
-- **Floating dock**, fixed to the bottom of the viewport, rounded, on every
-  page except `/capture` and the homepage (the homepage is deliberately bare).
-  On phones the starters collapse to one scrollable row. It is the front door, so it does not scroll away.
-- The answer stacks **above the input inside the same block**, so question,
-  answer, and sources stay one object.
-- **Cites every source** as a pill linking to the case study.
-- Starters are deliberately specific. "Ask me anything" gets vague questions,
-  and vague questions get vague answers.
-- Out of corpus → says so plainly rather than guessing.
-- The dock is `position: fixed`, so a `ResizeObserver` reserves matching
-  bottom padding on `body`. Without it the dock covers the end of every page.
+Both are gone from the tree (see `0ebf7e5`). The design that mattered survives
+in the build gates: private content is **absent from `dist/`** rather than
+hidden by a flag, which is what made the chat safe and still makes `/corpus.json`
+safe to publish.
 
 ## PII enforcement
 
 `src/lib/pii-patterns.mjs` is the **only** definition of what counts as PII,
-imported by both the build gate (`scripts/check-pii.mjs`, scans `dist/`) and
-the chat function (scans the model's answer). Same one-gate principle as
-`visibility.ts`: the two ends cannot drift apart.
+used by the build gate (`scripts/check-pii.mjs`, scans `dist/`). Same one-gate
+principle as `visibility.ts`: one definition, nothing else decides.
 
 Literal strings (real email, real phone) live in `.pii-denylist`, which is
 **gitignored** — committing it would defeat its own purpose.
@@ -180,33 +120,10 @@ and is wired into `npm run build`. Same discipline as the visibility canary:
 A real gap this caught: the first phone regex missed `+91 98765 43210`, the
 most common written Indian format, because it required 10 consecutive digits.
 
-## Capture — deployed, behind Cloudflare Access
-
-`/capture` is a form; `functions/api/capture.ts` **commits a `.md` to the repo**
-via the GitHub contents API.
-
-**Why git and not a database:** a database would make two sources of truth and
-would put content live without passing the build gates. Committing a file means
-a new moment clears `check-visibility` and `check-pii` on the next build like
-anything written by hand. There is no path from the form to the live site that
-skips them.
-
-Auth is Cloudflare Access, but **the JWT is verified in the function as well**.
-Access is configured in a dashboard; a removed or misconfigured policy would
-otherwise silently open a write path to the repository. The edge check and the
-function check fail independently.
-
-Verified rejected: no token, garbage, `alg=none`, HS256 algorithm confusion,
-wrong issuer, wrong audience, expired. The signature-verify path itself can
-only be tested against a real Access tenant.
-
-Visibility on capture **fails closed**: an unrecognised value becomes `private`,
-matching the schema default.
-
 ## SEO and GEO
 
 - `Base.astro` owns canonical (always trailing slash, matches the sitemap),
-  Open Graph/Twitter tags, `noindex` on `/capture`, and a `jsonLd` prop.
+  Open Graph/Twitter tags, and a `jsonLd` prop.
 - Person + WebSite JSON-LD on `/`, ProfilePage on `/about` and `/experience`.
   Person carries `alternateName: neeldeshmukh` so the one-word query resolves.
   `jobTitle` is "Software Engineer" (resume), not "Senior": do not claim a title
@@ -286,41 +203,18 @@ prompt engineering. Editor: Neovim.
 
 ```sh
 npm install
-npm run dev              # local dev (site only, no Functions)
+npm run dev              # local dev server
 npm run build            # build + visibility check + pii check
 npm run check            # astro check (typecheck)
 npm run check:visibility # leak check alone (needs an existing dist/)
 npm run check:pii        # pii self-test + scan (needs an existing dist/)
-
-# Functions run only under wrangler, not `astro dev`:
-npx wrangler pages dev dist --binding GEMINI_API_KEY=...
-npx tsc -p functions/tsconfig.json --noEmit   # functions typecheck
 ```
 
-`functions/` is excluded from the root tsconfig and carries its own — the
-Workers globals conflict with the DOM lib.
+## Deploy: GitHub Pages
 
-## Deploy: Cloudflare Pages
-
-Moved off GitHub Pages. Build `npm run build`, output `dist`, Functions picked
-up from `functions/` automatically.
-
-Secrets (dashboard, or `npx wrangler pages secret put <NAME>`) — never in
-`wrangler.toml`, which is committed:
-
-| Name | For |
-| --- | --- |
-| `GEMINI_API_KEY` | chat generation |
-| `GITHUB_TOKEN` | fine-grained PAT, **Contents: write**, this repo only |
-| `GITHUB_REPO` | `owner/repo` |
-| `GITHUB_BRANCH` | optional, defaults to `main` |
-| `ACCESS_TEAM_DOMAIN` | `<team>` from `<team>.cloudflareaccess.com` |
-| `ACCESS_AUD` | the Access application's AUD tag |
-
-Then add a Cloudflare Access application covering `/capture` **and**
-`/api/capture` — protecting only the page would leave the write endpoint open
-to anyone who knows the path. The in-function JWT check is the backstop, not
-the primary control.
+`.github/workflows/ci.yaml`: every push and PR builds and runs the gates; a push
+to `main` also deploys `dist/`. Repo Settings > Pages > Source must be "GitHub
+Actions", and the custom domain `neeldeshmukh.com` is set there.
 
 ## Conventions
 

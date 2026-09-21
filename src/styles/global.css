@@ -33,13 +33,8 @@ html {
 
 body {
   margin: 0;
-  /* Empty space after the footer equal to the dock's height. The fixed dock
-     always covers the bottom band of the viewport, so this is what guarantees
-     the footer can be scrolled clear of it. Pairs with .wrap's flex: 1,
-     which handles the opposite case of content shorter than the viewport. */
-  padding-bottom: var(--dock-h, 0px);
-  /* Column flex so .wrap can take whatever the banner and dock leave over,
-     instead of guessing their heights in a calc(). */
+  /* Column flex so .wrap takes whatever the banner leaves over, which parks
+     the footer at the bottom on short pages without guessing heights. */
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -52,16 +47,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Sticky footer, sized around the chat dock.
- *
- * The dock is position:fixed, so on a page shorter than the viewport it floats
- * over whatever happens to be at the bottom - which was the footer. Padding
- * alone cannot fix that: it adds space *after* the footer without moving the
- * footer up. So the wrap claims the viewport minus the dock, and main grows to
- * fill it, which parks the footer just above the dock at any content length.
- *
- * --dock-h is set at runtime by Chat.astro, and defaults to 0 so pages without
- * a dock (and no-JS) lay out normally. */
+/* Sticky footer: .wrap grows to fill the viewport, and main grows to fill
+ * .wrap, so a short page still ends with the footer at the bottom. */
 .wrap {
   display: flex;
   flex-direction: column;

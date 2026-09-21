@@ -1,5 +1,0 @@
-# Case studies were removed. Old links land on the homepage.
-# /resume is NOT here: it is a Cloudflare redirect rule set in the dashboard.
-/case-studies / 301
-/case-studies/* / 301
-/work / 301
