@@ -12,6 +12,7 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname, basename } from 'node:path';
 import { convertPage } from './lib/html-to-markdown.mjs';
+import { buildAgentSkills } from './lib/agent-skills.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const DIST = join(ROOT, 'dist');
@@ -43,3 +44,6 @@ for (const page of pages) {
 }
 
 console.log(`markdown twins ok - ${pages.length} page${pages.length === 1 ? '' : 's'}`);
+
+const skillCount = await buildAgentSkills(join(ROOT, 'src/agent-skills'), DIST);
+console.log(`agent skills ok - ${skillCount} published`);

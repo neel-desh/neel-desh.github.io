@@ -1,7 +1,17 @@
-# Search and AI crawlers are welcome, including GPTBot, ClaudeBot,
-# PerplexityBot, Google-Extended and Applebot-Extended. Being quotable by
-# answer engines is the point of the site, so nothing is blocked.
+# Search and AI crawlers are welcome and named explicitly, so answer engines
+# can quote and cite this site. The Content-Signal line separates uses:
+# search and ai-input (quoting in answers) are allowed, ai-train (model
+# training) is not. Change ai-train here and nowhere else.
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no
+Allow: /
+
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
 Allow: /
 
 Sitemap: https://neeldeshmukh.com/sitemap.xml

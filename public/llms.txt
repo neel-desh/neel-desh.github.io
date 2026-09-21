@@ -11,6 +11,15 @@ This is Neel Deshmukh's personal site. Every claim on it is backed by a dated en
 - [Experience](https://neeldeshmukh.com/experience/): roles, measured outcomes, skills and education
 - [Resume (PDF)](https://neeldeshmukh.com/resume)
 
+## Markdown
+
+Each page is also served as markdown, or request it with `Accept: text/markdown`.
+
+- [Home](https://neeldeshmukh.com/index.md)
+- [About](https://neeldeshmukh.com/about/index.md)
+- [Experience](https://neeldeshmukh.com/experience/index.md)
+- [Agent skill](https://neeldeshmukh.com/.well-known/agent-skills/neel-deshmukh-profile/SKILL.md)
+
 ## Data
 
 - [Full corpus (JSON)](https://neeldeshmukh.com/corpus.json): every public entry the site is built from, machine readable
