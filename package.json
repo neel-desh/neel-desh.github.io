@@ -5,9 +5,10 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/build-markdown.mjs && npm run check:visibility && npm run check:pii",
+    "build": "astro build && node scripts/build-markdown.mjs && npm run check:visibility && npm run check:pii && npm run check:agent",
     "check:visibility": "node scripts/check-visibility.mjs",
     "check:pii": "node scripts/check-pii.mjs --self-test && node scripts/check-pii.mjs",
+    "check:agent": "node scripts/check-agent.mjs --self-test && node scripts/check-agent.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "node --test scripts/*.test.mjs"
