@@ -153,8 +153,12 @@ what a passing result looks like.
 - robots.txt contains a `Content-Signal` line with all three keys;
 - the agent-skills index parses, each `url` exists in `dist/`, and each
   digest matches the file bytes;
-- no `index.md` contains an email address or phone number (delegated to
-  `pii-patterns.mjs`, the single definition of PII).
+- every `.md` link in `llms.txt` resolves to a file in `dist/`.
+
+PII is not re-checked here. `check-pii.mjs` only scanned a fixed set of text
+extensions and `.md` was not one of them, so the twins would have slipped
+past it. The fix is to add `.md` to `TEXT_EXT` in `check-pii.mjs`, which keeps
+`pii-patterns.mjs` the single definition and `check-pii` the single gate.
 
 `--self-test` runs the check against in-memory broken fixtures (missing twin,
 bad digest, no Content-Signal) and must fail each, per the project rule that
