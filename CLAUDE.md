@@ -8,7 +8,7 @@ redesign: the decisions, why they were made, and what is still open.
 
 ## Current state
 
-Branch `redesign` (off `main`). **The site is fully static.** Pages: home,
+Merged into `main` (fast-forward, `725d79d`). **The site is fully static.** Pages: home,
 experience, about. No Functions, no chat, no capture form: those were built
 (commit `0ebf7e5` has all of it, including the RAG chat guardrails and the
 Access-verified capture endpoint) and then removed so the site can deploy to
@@ -21,8 +21,6 @@ there).
 
 `moments/` and `case-studies/` are no longer rendered as pages. They are kept
 as the evidence store and published as `/corpus.json` for machines.
-
-`main` is still the old Hugo site. Nothing has been merged yet.
 
 ## Stack, and why
 
